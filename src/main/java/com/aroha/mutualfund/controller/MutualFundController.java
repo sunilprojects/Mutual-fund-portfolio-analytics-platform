@@ -17,7 +17,7 @@ public class MutualFundController {
     @Autowired
 	private MutualFundService mutualFundService;
     
-    @PostMapping("/upload-portfolio")
+    @PostMapping("/upload")
     public ResponseEntity<String> uploadFundFile(@RequestParam("files") MultipartFile[] file) {
     
 
