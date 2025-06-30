@@ -1,5 +1,7 @@
 package com.aroha.mutualfund.service;
 
-public interface MutualFundService {
+import org.springframework.web.multipart.MultipartFile;
 
+public interface MutualFundService {
+   String processFundFile(MultipartFile[] file);
 }
