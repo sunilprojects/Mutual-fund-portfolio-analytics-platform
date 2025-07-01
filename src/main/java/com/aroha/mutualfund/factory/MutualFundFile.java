@@ -4,7 +4,9 @@ import java.util.List;
 
 import org.apache.poi.ss.usermodel.Sheet;
 
+import com.aroha.mutualfund.pojo.RowEntityBundle;
+
 public interface MutualFundFile {
 
-	List<String[]> extractFile(Sheet sheet);
+	List<RowEntityBundle> extractFile(Sheet sheet);
 }
