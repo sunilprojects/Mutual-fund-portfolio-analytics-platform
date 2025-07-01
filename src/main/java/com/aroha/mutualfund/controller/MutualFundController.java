@@ -18,10 +18,10 @@ public class MutualFundController {
 	private MutualFundService mutualFundService;
     
     @PostMapping("/upload")
-    public ResponseEntity<String> uploadFundFile(@RequestParam("files") MultipartFile[] file) {
+    public ResponseEntity<String> uploadFundFile(@RequestParam("files") MultipartFile[] files) {
     
 
-        String result = mutualFundService.processFundFile(file);
+        String result = mutualFundService.processFundFile(files);
         return ResponseEntity.ok(result);
 }
 }
