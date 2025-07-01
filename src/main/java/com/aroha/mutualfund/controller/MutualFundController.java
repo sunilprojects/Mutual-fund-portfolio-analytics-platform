@@ -17,11 +17,11 @@ public class MutualFundController {
     @Autowired
 	private MutualFundService mutualFundService;
     
-    @PostMapping("/upload-portfolio")
-    public ResponseEntity<String> uploadFundFile(@RequestParam("files") MultipartFile[] file) {
-    
+    @PostMapping("/upload")
+    public ResponseEntity<String> uploadFundFile(@RequestParam("files") MultipartFile[] files) {
+               //.....
 
-        String result = mutualFundService.processFundFile(file);
+        String result = mutualFundService.processFundFile(files);
         return ResponseEntity.ok(result);
 }
 }
