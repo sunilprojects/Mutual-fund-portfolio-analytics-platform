@@ -7,6 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.aroha.mutualfund.factory.FilesFactory;
 import com.aroha.mutualfund.factory.MutualFundFile;
+import com.aroha.mutualfund.pojo.RowEntityBundle;
 import com.aroha.mutualfund.service.MutualFundService;
 
 @Service
@@ -18,10 +19,10 @@ public class MutualFundServiceImpl implements MutualFundService {
 		
 		FilesFactory filesFactory = new FilesFactory();
 		//TODO: pass Multipart file name
-		MutualFundFile mutualFundFile = filesFactory.getFile("");
+		MutualFundFile mutualFundFile = filesFactory.getFile("dsp");
 		//TODO: handle null
 		//TODO: pass Sheet
-		List<String[]> fieldList=mutualFundFile.extractFile(null);
+		List<RowEntityBundle> fieldList=mutualFundFile.extractFile(null);
 		
 		return null;
 	}

@@ -6,12 +6,12 @@ public class FilesFactory {
 		if (filename == null) {
 			return null;
 		}
-		if (filename.equalsIgnoreCase("Mirae Asset Large Cap Fund")) {
+		if (filename.equalsIgnoreCase("Mira Index Mutual Fund")) {
 			return new handlerMiraeAssetFund();
 		} else if (filename.equalsIgnoreCase(
-				"HDFC Mid-Cap Opportunities Fund (An open ended equity scheme predominantly investing in mid cap stocks)")) {
+				"HDFC Mid-Cap Opportunities Fund")) {
 			return new handlerHDFCOpportunitiesFund();
-		} else if (filename.equalsIgnoreCase("DSP Mid Cap Fund")) {
+		} else if (filename.equalsIgnoreCase("DSP Mutual Fund Allocation")) {
 			return new handlerDSPFund();
 		}
 		return null;
