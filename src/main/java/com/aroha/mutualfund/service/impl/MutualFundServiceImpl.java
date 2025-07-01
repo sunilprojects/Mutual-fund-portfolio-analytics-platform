@@ -17,12 +17,7 @@ public class MutualFundServiceImpl implements MutualFundService {
 
 		
 		
-		FilesFactory filesFactory = new FilesFactory();
-		//TODO: pass Multipart file name
-		MutualFundFile mutualFundFile = filesFactory.getFile("dsp");
-		//TODO: handle null
-		//TODO: pass Sheet
-		List<RowEntityBundle> fieldList=mutualFundFile.extractFile(null);
+		
 		
 		return null;
 	}
