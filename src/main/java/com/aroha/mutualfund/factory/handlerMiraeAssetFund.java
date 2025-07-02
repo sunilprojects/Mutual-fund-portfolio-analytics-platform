@@ -16,8 +16,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 
 import com.aroha.mutualfund.dto.EquityDTO;
 import com.aroha.mutualfund.dto.MutualFundDTO;
-import com.aroha.mutualfund.pojo.HoldingTransactions;
-import com.aroha.mutualfund.pojo.Instrument;
+
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -87,8 +86,6 @@ public class handlerMiraeAssetFund implements MutualFundFile {
 
 		MutualFundDTO mutualFundDTO=new MutualFundDTO();
 		List<EquityDTO> listEquity=new ArrayList<>();
-		HoldingTransactions holdingTransactions = new HoldingTransactions();
-		Instrument instrument=new Instrument();
 		
 		mutualFundDTO.setFundName(fundName);
 		mutualFundDTO.setFundType(fundType);
@@ -123,13 +120,14 @@ public class handlerMiraeAssetFund implements MutualFundFile {
 			if (cell != null && cell.getCellType() == CellType.NUMERIC) {
 				equityDTO.setQuantity((int)cell.getNumericCellValue());
 			}
+			
 			cell = row.getCell(5);
-			if (cell != null && cell.getCellType() == CellType.STRING) {
-				String raw = cell.getStringCellValue().replace(",", "").trim();
-				BigDecimal marketVal = new BigDecimal(raw);
-				equityDTO.setMarketValue(marketVal);
-
+			if (cell != null && cell.getCellType() == CellType.NUMERIC) {
+			    double numericValue = cell.getNumericCellValue();
+			    BigDecimal marketVal = BigDecimal.valueOf(numericValue);
+			    equityDTO.setMarketValue(marketVal);
 			}
+			
 			cell = row.getCell(6);
 			if (cell != null && cell.getCellType() == CellType.NUMERIC) {
 				double rawValue = cell.getNumericCellValue(); // will be 0.0007
