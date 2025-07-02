@@ -161,7 +161,6 @@ public class handlerDSPFund implements MutualFundFile {
 
 		// Try common date formats
 		DateTimeFormatter[] formatters = { DateTimeFormatter.ofPattern("MMMM d, yyyy"), // "June 30, 2023"
-				DateTimeFormatter.ofPattern("MMM d, yyyy"), // "Jun 30, 2023"
 				DateTimeFormatter.ofPattern("d MMMM, yyyy"), // "30 June, 2023"
 				DateTimeFormatter.ofPattern("yyyy-MM-dd") // "2023-06-30"
 		};
@@ -173,7 +172,6 @@ public class handlerDSPFund implements MutualFundFile {
 				// Try next format
 			}
 		}
-
 		throw new DateTimeParseException("Unable to parse date: " + dateText, dateText, 0);
 	}
 

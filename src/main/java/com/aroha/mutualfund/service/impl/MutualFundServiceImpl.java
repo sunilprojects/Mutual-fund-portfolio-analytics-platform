@@ -1,4 +1,3 @@
-
 package com.aroha.mutualfund.service.impl;
 
 import java.io.InputStream;
@@ -12,9 +11,14 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.aroha.mutualfund.dto.EquityDTO;
 import com.aroha.mutualfund.dto.MutualFundDTO;
 import com.aroha.mutualfund.factory.FilesFactory;
 import com.aroha.mutualfund.factory.MutualFundFile;
+import com.aroha.mutualfund.repository.FundRepository;
+import com.aroha.mutualfund.repository.HoldingTransactionsRepository;
+import com.aroha.mutualfund.repository.HoldingsRepository;
+import com.aroha.mutualfund.repository.InstrumentRepository;
 import com.aroha.mutualfund.service.MutualFundService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -22,8 +26,21 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 public class MutualFundServiceImpl implements MutualFundService {
-	@Override
 
+	private FundRepository fundRepository;
+	private InstrumentRepository instrumentRepository;
+	private HoldingsRepository holdingsRepository;
+	private HoldingTransactionsRepository holdingTransactionsRepository;
+
+	public MutualFundServiceImpl(FundRepository mutualFundRepository, InstrumentRepository instrumentRepository,
+			HoldingsRepository holdingsRepository, HoldingTransactionsRepository holdingTransactionsRepository) {
+		this.fundRepository = mutualFundRepository;
+		this.instrumentRepository = instrumentRepository;
+		this.holdingsRepository = holdingsRepository;
+		this.holdingTransactionsRepository = holdingTransactionsRepository;
+	}
+
+	@Override
 	public String processFundFile(MultipartFile[] files) {
 		if (files == null || files.length == 0) {
 			return "No files uploaded";
@@ -58,8 +75,30 @@ public class MutualFundServiceImpl implements MutualFundService {
 				// TODO: handle null
 				// TODO: pass Sheet
 				MutualFundDTO fieldList = mutualFundFile.extractFile(sheet);
-				
+
 				log.info("{}", fieldList.getEquity().size());
+				// TODO: handle null
+				// TODO: pass Sheet
+				MutualFundDTO mutualFundDTO = mutualFundFile.extractFile(sheet);
+				log.info("{}", mutualFundDTO.getEquity().size());
+
+				// TODO Data Validation
+
+				// Store in DB
+				// TODO: Pass actual username by fetching from postman
+				int fundid = fundRepository.insertFundIfNotExists(mutualFundDTO.getFundName(),
+						mutualFundDTO.getFundType(), "username");
+
+				if (mutualFundDTO.getEquity() != null) {
+					for (EquityDTO equity : mutualFundDTO.getEquity()) {
+						log.info("MarketValue:{}", equity.getMarketValue());
+						int instrumentId = instrumentRepository.insertInstrumentIfNotExists(equity.getIsin(),
+								equity.getInstrumentName(), equity.getSector(), "username");
+						int holdingId = holdingsRepository.insertHoldingIfNotExists(fundid, instrumentId, "username");
+						holdingTransactionsRepository.upsertTransaction(holdingId, mutualFundDTO.getDateOfPortfolio(),
+								equity.getQuantity(), equity.getMarketValue(), equity.getNetAsset(), "username");
+					}
+				}
 
 			} catch (Exception e) {
 				skippedFiles.add(filename);

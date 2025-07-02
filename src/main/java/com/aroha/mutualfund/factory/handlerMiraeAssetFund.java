@@ -119,13 +119,14 @@ public class handlerMiraeAssetFund implements MutualFundFile {
 			if (cell != null && cell.getCellType() == CellType.NUMERIC) {
 				equityDTO.setQuantity((int) cell.getNumericCellValue());
 			}
-			cell = row.getCell(5);
-			if (cell != null && cell.getCellType() == CellType.STRING) {
-				String raw = cell.getStringCellValue().replace(",", "").trim();
-				BigDecimal marketVal = new BigDecimal(raw);
-				equityDTO.setMarketValue(marketVal);
 
+			cell = row.getCell(5);
+			if (cell != null && cell.getCellType() == CellType.NUMERIC) {
+				double numericValue = cell.getNumericCellValue();
+				BigDecimal marketVal = BigDecimal.valueOf(numericValue);
+				equityDTO.setMarketValue(marketVal);
 			}
+
 			cell = row.getCell(6);
 			if (cell != null && cell.getCellType() == CellType.NUMERIC) {
 				double rawValue = cell.getNumericCellValue(); // will be 0.0007
