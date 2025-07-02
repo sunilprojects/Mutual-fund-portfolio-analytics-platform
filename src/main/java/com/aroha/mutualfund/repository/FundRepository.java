@@ -10,6 +10,8 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import com.aroha.mutualfund.dto.FundsResponceDTO;
+
 @Repository
 public class FundRepository {
 
@@ -44,5 +46,18 @@ public class FundRepository {
 		}, keyHolder);
 
 		return Objects.requireNonNull(keyHolder.getKey()).intValue();
+	}
+
+	public List<FundsResponceDTO> getAllFunds() {
+		String sql = "SELECT fund_id,fund_name FROM fund";
+
+		List<FundsResponceDTO> funds = jdbcTemplate.query(sql, (res, row) -> {
+			return FundsResponceDTO.builder()
+					.fundId(res.getInt("fund_id"))
+					.fundName(res.getString("fund_name"))
+					.build();
+		});
+
+		return funds;
 	}
 }
