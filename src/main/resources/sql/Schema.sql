@@ -26,19 +26,17 @@ CREATE TABLE holdings (
     FOREIGN KEY (fund_id) REFERENCES fund(fund_id),
     FOREIGN KEY (instrument_id) REFERENCES instrument(instrument_id)
 );
-
-
 CREATE TABLE holding_transactions (
     transaction_id INT AUTO_INCREMENT PRIMARY KEY,
     holding_id INT NOT NULL,
     date_of_portfolio DATE NOT NULL,
     quantity INT NOT NULL,
     market_value DECIMAL(18,2) NOT NULL,
-    net_asset DECIMAL(5,4) NOT NULL,
+    net_asset DECIMAL(20, 15) NOT NULL,
     created_date DATE NOT NULL,
     created_by varchar(100) NOT NULL,
     updated_at Date NOT NULL,
     updated_by varchar(100) NOT NULL,
     FOREIGN KEY ( holding_id) REFERENCES holdings( holding_id),
-    
+    CONSTRAINT uk_holding_date UNIQUE ( holding_id, date_of_portfolio)
 );
