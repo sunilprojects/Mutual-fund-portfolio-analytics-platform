@@ -14,13 +14,13 @@ import com.aroha.mutualfund.service.MutualFundService;
 @RestController
 @RequestMapping(EndPoints.API_V1_FUNDS)
 public class MutualFundController {
-    @Autowired
+	@Autowired
 	private MutualFundService mutualFundService;
-    
-    @PostMapping("/upload")
-    public ResponseEntity<String> uploadFundFile(@RequestParam("files") MultipartFile[] files) {
 
-        String result = mutualFundService.processFundFile(files);
-        return ResponseEntity.ok(result);
-}
+	@PostMapping("/upload")
+	public ResponseEntity<String> uploadFundFile(@RequestParam("files") MultipartFile[] files) {
+
+		String result = mutualFundService.processFundFile(files);
+		return ResponseEntity.ok(result);
+	}
 }
