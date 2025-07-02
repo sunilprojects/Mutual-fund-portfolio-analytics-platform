@@ -22,7 +22,7 @@ import com.aroha.mutualfund.dto.MutualFundDTO;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class handlerHDFCOpportunitiesFund implements MutualFundFile {
+public class HandlerHDFCOpportunitiesFund implements MutualFundFile {
 
 	private String getSafeValue(Row row, Integer colIndex) {
 		if (colIndex == null)
