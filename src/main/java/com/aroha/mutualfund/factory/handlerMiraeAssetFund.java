@@ -16,8 +16,6 @@ import org.apache.poi.ss.usermodel.Sheet;
 
 import com.aroha.mutualfund.dto.EquityDTO;
 import com.aroha.mutualfund.dto.MutualFundDTO;
-import com.aroha.mutualfund.pojo.HoldingTransactions;
-import com.aroha.mutualfund.pojo.Instrument;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -85,23 +83,21 @@ public class handlerMiraeAssetFund implements MutualFundFile {
 			log.info("File Format Not Proper");
 		}
 
-		MutualFundDTO mutualFundDTO=new MutualFundDTO();
-		List<EquityDTO> listEquity=new ArrayList<>();
-		HoldingTransactions holdingTransactions = new HoldingTransactions();
-		Instrument instrument=new Instrument();
-		
+		MutualFundDTO mutualFundDTO = new MutualFundDTO();
+		List<EquityDTO> listEquity = new ArrayList<>();
+
 		mutualFundDTO.setFundName(fundName);
 		mutualFundDTO.setFundType(fundType);
 		mutualFundDTO.setDateOfPortfolio(dateOfPortpolio);
-		 
+
 		// Iterate over Equity
 		for (int rowIndex = 10; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
 			row = sheet.getRow(rowIndex);
 			if (row == null)
 				continue;
-			
-			EquityDTO equityDTO=new EquityDTO();
-			
+
+			EquityDTO equityDTO = new EquityDTO();
+
 			Cell cell = row.getCell(1);
 			if (cell != null) {
 
@@ -121,7 +117,7 @@ public class handlerMiraeAssetFund implements MutualFundFile {
 			}
 			cell = row.getCell(4);
 			if (cell != null && cell.getCellType() == CellType.NUMERIC) {
-				equityDTO.setQuantity((int)cell.getNumericCellValue());
+				equityDTO.setQuantity((int) cell.getNumericCellValue());
 			}
 			cell = row.getCell(5);
 			if (cell != null && cell.getCellType() == CellType.STRING) {
@@ -133,10 +129,10 @@ public class handlerMiraeAssetFund implements MutualFundFile {
 			cell = row.getCell(6);
 			if (cell != null && cell.getCellType() == CellType.NUMERIC) {
 				double rawValue = cell.getNumericCellValue(); // will be 0.0007
-			    BigDecimal percentage = BigDecimal.valueOf(rawValue).multiply(BigDecimal.valueOf(100));
-			    equityDTO.setNetAsset(percentage); // set 0.07
+				BigDecimal percentage = BigDecimal.valueOf(rawValue).multiply(BigDecimal.valueOf(100));
+				equityDTO.setNetAsset(percentage); // set 0.07
 			}
-			
+
 			listEquity.add(equityDTO);
 		}
 		mutualFundDTO.setEquity(listEquity);
