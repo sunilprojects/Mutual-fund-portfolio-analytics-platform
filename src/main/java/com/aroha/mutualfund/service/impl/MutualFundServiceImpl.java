@@ -92,7 +92,7 @@ public class MutualFundServiceImpl implements MutualFundService {
 				    	log.info("MarketValue:{}",equity.getMarketValue());
 				    	int instrumentId=instrumentRepository.insertInstrumentIfNotExists(equity.getIsin(), equity.getInstrumentName(), equity.getSector(), "username");
 				    	int holdingId=holdingsRepository.insertHoldingIfNotExists(fundid, instrumentId, "username");
-				    	holdingTransactionsRepository.insertTransaction(holdingId, mutualFundDTO.getDateOfPortfolio(), equity.getQuantity(), equity.getMarketValue(), equity.getNetAsset(), "username");
+				    	holdingTransactionsRepository.upsertTransaction(holdingId, mutualFundDTO.getDateOfPortfolio(), equity.getQuantity(), equity.getMarketValue(), equity.getNetAsset(), "username");
 				    }
 				}
 				
