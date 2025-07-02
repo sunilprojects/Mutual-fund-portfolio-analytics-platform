@@ -26,10 +26,10 @@ public class MutualFundController {
 		String result = mutualFundService.processFundFile(files);
 		return ResponseEntity.ok(result);
 	}
-	
+
 	@GetMapping
-	public ResponseEntity<List<FundsResponceDTO>> getAllFunds(){
-		List<FundsResponceDTO> funds=mutualFundService.getAllFunds();	
-		return ResponseEntity.ok(funds);	
+	public ResponseEntity<List<FundsResponceDTO>> getAllFunds() {
+		List<FundsResponceDTO> funds = mutualFundService.getAllFunds();
+		return ResponseEntity.ok(funds);
 	}
 }
