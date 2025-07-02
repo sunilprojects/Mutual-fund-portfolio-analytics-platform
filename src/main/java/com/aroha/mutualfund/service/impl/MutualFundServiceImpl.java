@@ -3,23 +3,18 @@ package com.aroha.mutualfund.service.impl;
 
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.aroha.mutualfund.dto.MutualFundDTO;
 import com.aroha.mutualfund.factory.FilesFactory;
 import com.aroha.mutualfund.factory.MutualFundFile;
-import com.aroha.mutualfund.pojo.RowEntityBundle;
 import com.aroha.mutualfund.service.MutualFundService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +47,7 @@ public class MutualFundServiceImpl implements MutualFundService {
 	             Workbook workbook = filename.toLowerCase().endsWith(".xlsx") ?
 	                                 new XSSFWorkbook(inputStream) :
 	                                 new HSSFWorkbook(inputStream)) {
-
+	        	
 	            Sheet sheet = workbook.getSheetAt(0);
 	           
 	            if (filename.contains(" - ")) {
@@ -65,8 +60,8 @@ public class MutualFundServiceImpl implements MutualFundService {
 				MutualFundFile mutualFundFile = filesFactory.getFile(filename);
 				//TODO: handle null
 				//TODO: pass Sheet
-				List<RowEntityBundle> fieldList=mutualFundFile.extractFile(sheet);
-				
+				MutualFundDTO fieldList=mutualFundFile.extractFile(sheet);
+				log.info("{}",fieldList.getEquity().size());
 	          
  
 	        } catch (Exception e) {

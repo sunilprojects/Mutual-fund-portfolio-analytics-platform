@@ -1,6 +1,7 @@
-package com.aroha.mutualfund.pojo;
+package com.aroha.mutualfund.dto;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,14 +9,16 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Builder
-@NoArgsConstructor
 @AllArgsConstructor
-public class Fund {
+@NoArgsConstructor
+@Builder
+public class MutualFundDTO {
+
 	private String fundName;
     private String fundType;
-    private LocalDate createdDate;
+    private LocalDate dateOfPortfolio;
     private String createdBy;
-    private LocalDate updatedAt;
     private String updatedBy;
+    private List<EquityDTO> equity;
+    
 }

@@ -1,6 +1,8 @@
-package com.aroha.mutualfund.pojo;
+package com.aroha.mutualfund.dto;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,17 +10,15 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Builder
-@NoArgsConstructor
 @AllArgsConstructor
-public class Instrument {
+@NoArgsConstructor
+@Builder
+public class EquityDTO {
 
 	private String isin;
     private String instrumentName;
     private String sector;
-    private LocalDate createdDate;
-    private String createdBy;
-    private LocalDate updatedAt;
-    private String updatedBy;
-
+    private int quantity;
+    private BigDecimal marketValue;
+    private BigDecimal netAsset;
 }
