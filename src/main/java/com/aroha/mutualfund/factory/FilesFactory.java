@@ -7,12 +7,12 @@ public class FilesFactory {
 			return null;
 		}
 		if (filename.equalsIgnoreCase("Mira Index Mutual Fund")) {
-			return new handlerMiraeAssetFund();
+			return new HandlerMiraeAssetFund();
 		} else if (filename.equalsIgnoreCase(
 				"HDFC Mid-Cap Opportunities Fund")) {
-			return new handlerHDFCOpportunitiesFund();
+			return new HandlerHDFCOpportunitiesFund();
 		} else if (filename.equalsIgnoreCase("DSP Mutual Fund Allocation")) {
-			return new handlerDSPFund();
+			return new HandlerDSPFund();
 		}
 		return null;
 	}

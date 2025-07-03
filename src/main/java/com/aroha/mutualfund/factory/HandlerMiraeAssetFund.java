@@ -20,7 +20,7 @@ import com.aroha.mutualfund.dto.MutualFundDTO;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class handlerMiraeAssetFund implements MutualFundFile {
+public class HandlerMiraeAssetFund implements MutualFundFile {
 
 	@Override
 	public MutualFundDTO extractFile(Sheet sheet) {
