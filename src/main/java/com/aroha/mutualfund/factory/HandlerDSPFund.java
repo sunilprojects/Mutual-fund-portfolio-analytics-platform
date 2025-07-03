@@ -59,7 +59,7 @@ public class HandlerDSPFund implements MutualFundFile {
 			if (row == null)
 				continue;
 
-			if (isLastRow(row))
+			if (isLastEquity(row))
 				break;
 
 			EquityDTO equityDTO = createEquityDTO(row);
@@ -69,7 +69,7 @@ public class HandlerDSPFund implements MutualFundFile {
 		}
 	}
 
-	private boolean isLastRow(Row row) {
+	private boolean isLastEquity(Row row) {
 		Cell cell = row.getCell(INSTRUMENT_NAME_COL);
 		return cell != null && "Total".equalsIgnoreCase(cell.getStringCellValue().trim());
 	}
