@@ -6,8 +6,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 
 import com.aroha.mutualfund.dto.MutualFundDTO;
 
-
 public interface MutualFundFile {
 
-	MutualFundDTO extractFile(Sheet sheet);
+	MutualFundDTO extractFile(Sheet sheet) ;
 }
