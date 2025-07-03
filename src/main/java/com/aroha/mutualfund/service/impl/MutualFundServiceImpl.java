@@ -12,7 +12,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.aroha.mutualfund.dto.EquityDTO;
+
 import com.aroha.mutualfund.dto.FundsResponceDTO;
+
+import com.aroha.mutualfund.dto.HoldingDetail;
+
 import com.aroha.mutualfund.dto.MutualFundDTO;
 import com.aroha.mutualfund.factory.FilesFactory;
 import com.aroha.mutualfund.factory.MutualFundFile;
@@ -109,6 +113,10 @@ public class MutualFundServiceImpl implements MutualFundService {
 	@Override
 	public List<FundsResponceDTO> getAllFunds() {
 		return fundRepository.getAllFunds();
+	}
+
+	public List<HoldingDetail> getFundHoldings(int fundId) {
+		return holdingsRepository.getHoldingsByFundId(fundId);
 	}
 
 }
