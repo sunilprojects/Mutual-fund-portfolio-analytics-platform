@@ -77,6 +77,10 @@ public class MutualFundServiceImpl implements MutualFundService {
 				FilesFactory filesFactory = new FilesFactory();
 				// TODO: pass Multipart file name
 				MutualFundFile mutualFundFile = filesFactory.getFile(filename);
+				
+				if(mutualFundFile==null) {
+					continue;
+				}
 				// TODO: handle null
 				// TODO: pass Sheet
 
