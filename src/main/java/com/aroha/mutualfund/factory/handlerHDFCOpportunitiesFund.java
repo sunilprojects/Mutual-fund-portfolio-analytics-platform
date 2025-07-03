@@ -47,12 +47,8 @@ public class handlerHDFCOpportunitiesFund implements MutualFundFile {
 
 	@Override
 	public MutualFundDTO extractFile(Sheet sheet) {
-		
-		//TODO Sunil
-		// TODO Auto-generated method stub
 	    Map<String, Integer> columnIndexMap = new HashMap<>();
 	    boolean headerMapped = false;
-	    int validCount=0;
 	    List<EquityDTO> equityList = new ArrayList<>();
 	    String fundName = "";
 	    String fundType = "";
@@ -71,7 +67,7 @@ public class handlerHDFCOpportunitiesFund implements MutualFundFile {
 	                fundName = value.trim();
 	            }
 
-	            // ✅ Extract fund type from inside brackets
+	            // Extract fund type from inside brackets
 	            if (value.toLowerCase().contains("mid cap")) {
 	                fundType = "mid cap";
 	            } else if (value.toLowerCase().contains("small cap")) {
@@ -85,8 +81,6 @@ public class handlerHDFCOpportunitiesFund implements MutualFundFile {
 	             
 	        }
 	    }
-	    
-	  
 
 	    Row secondRow = sheet.getRow(1);
 	    if (secondRow != null) {
@@ -116,14 +110,10 @@ public class handlerHDFCOpportunitiesFund implements MutualFundFile {
 	    for (Row row : sheet) {
 	        if (row == null || row.getPhysicalNumberOfCells() == 0) continue;
 
-//	        System.out.println("🔍 Checking Row Num: " + row.getRowNum());
-
-	        // Step 1: Detect header row (NO Coupon % here)
 	        if (!headerMapped) {
 	            for (Cell cell : row) {
 	                if (cell.getCellType() == CellType.STRING) {
 	                    String header = cell.getStringCellValue().trim();
-//	                    System.out.println("header:"+header);
 	                    if (header.equalsIgnoreCase("ISIN") ||
 	                        header.equalsIgnoreCase("Name Of the Instrument") ||
 	                        header.equalsIgnoreCase("Industry+ /Rating") ||
@@ -137,12 +127,13 @@ public class handlerHDFCOpportunitiesFund implements MutualFundFile {
 
 	            if (columnIndexMap.size() == 6) {
 	                headerMapped = true;
-//	                System.out.println("✅ Header Found at Row: " + row.getRowNum());
-//	                System.out.println("📌 Column Index Map: " + columnIndexMap);
 	            }
 	            continue;
 	        }
 	
+	        
+	        
+	    
 
 	        // Step 2: Extract values (excluding coupon)
 	        String isin = getSafeValue(row, columnIndexMap.get("ISIN"));
@@ -152,25 +143,12 @@ public class handlerHDFCOpportunitiesFund implements MutualFundFile {
 	        String marketValueStr = getSafeValue(row, columnIndexMap.get("Market/ Fair Value (Rs. in Lacs.)"));
 	        String netAssetStr = getSafeValue(row, columnIndexMap.get("% to NAV"));
 
-//	        System.out.println("🧾 Raw Values: ISIN=" + isin + ", Name=" + name + ", Industry=" + industry + ", Qty=" + quantity + ", MV=" + marketValue);
 
 	        // Step 3: Only print row if all required fields are present
 	        if (isin.isEmpty() || name.isEmpty() || industry.isEmpty() || quantityStr.isEmpty() || marketValueStr.isEmpty()||netAssetStr.isEmpty()) {
-//	            System.out.println("❌ Skipping Row (Required field missing)");
 	            continue;
 	        }
-	        validCount++;
 
-	        // Step 4: Print valid row
-	        System.out.println("-----------------------------------------");
-	        System.out.println("ISIN         : " + isin);
-	        System.out.println("Name         : " + name);
-	        System.out.println("Industry     : " + industry);
-	        System.out.println("Quantity     : " + quantityStr);
-	        System.out.println("Market Value : " + marketValueStr);
-	        System.out.println("Net Assest   : " + netAssetStr);
-	        System.out.println("-----------------------------------------");
-	        
 	        
 	        try {
 	            int quantity = Integer.parseInt(quantityStr.replace(",", "").split("\\.")[0]);
@@ -189,19 +167,12 @@ public class handlerHDFCOpportunitiesFund implements MutualFundFile {
 	            equityList.add(equityDTO);
 
 	        } catch (Exception e) {
-	            System.out.println("⚠️ Skipping row due to parsing error: " + e.getMessage());
+	            System.out.println("Skipping row due to parsing error: " + e.getMessage());
 	        }
 
-	        
-	     
 	  
 	    }
-	         
-            System.out.println("validCount:"+validCount);
-            System.out.println("fundName: "+fundName);
-            System.out.println("fundtype: "+fundType);
-            System.out.println("dateof portfolio:"+ dateOfPortfolio);
-            
+
             return MutualFundDTO.builder()
                     .fundName(fundName)
                     .fundType(fundType)

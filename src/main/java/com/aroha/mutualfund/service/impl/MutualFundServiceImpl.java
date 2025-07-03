@@ -90,6 +90,7 @@ public class MutualFundServiceImpl implements MutualFundService {
 				if (mutualFundDTO.getEquity() != null) {
 				    for (EquityDTO equity : mutualFundDTO.getEquity()) {
 				    	log.info("MarketValue:{}",equity.getMarketValue());
+				    	
 				    	int instrumentId=instrumentRepository.insertInstrumentIfNotExists(equity.getIsin(), equity.getInstrumentName(), equity.getSector(), "username");
 				    	int holdingId=holdingsRepository.insertHoldingIfNotExists(fundid, instrumentId, "username");
 				    	holdingTransactionsRepository.upsertTransaction(holdingId, mutualFundDTO.getDateOfPortfolio(), equity.getQuantity(), equity.getMarketValue(), equity.getNetAsset(), "username");
@@ -105,8 +106,10 @@ public class MutualFundServiceImpl implements MutualFundService {
 	    return "Processed Files: " + processedFiles + "\nSkipped Files: " + skippedFiles;
 	}
 
-
-
+	 @Override
+	    public List<String> getSectorsByFundId(int fundId) {
+	        return instrumentRepository.findSectorsByFundId(fundId);
+	    }
 
    }
 
