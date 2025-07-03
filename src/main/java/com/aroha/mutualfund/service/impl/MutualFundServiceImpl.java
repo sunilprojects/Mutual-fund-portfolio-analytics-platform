@@ -12,7 +12,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.aroha.mutualfund.dto.EquityDTO;
+
+import com.aroha.mutualfund.dto.FundsResponceDTO;
+
 import com.aroha.mutualfund.dto.HoldingDetail;
+
 import com.aroha.mutualfund.dto.MutualFundDTO;
 import com.aroha.mutualfund.factory.FilesFactory;
 import com.aroha.mutualfund.factory.MutualFundFile;
@@ -75,11 +79,7 @@ public class MutualFundServiceImpl implements MutualFundService {
 				MutualFundFile mutualFundFile = filesFactory.getFile(filename);
 				// TODO: handle null
 				// TODO: pass Sheet
-				MutualFundDTO fieldList = mutualFundFile.extractFile(sheet);
 
-				log.info("{}", fieldList.getEquity().size());
-				// TODO: handle null
-				// TODO: pass Sheet
 				MutualFundDTO mutualFundDTO = mutualFundFile.extractFile(sheet);
 				log.info("{}", mutualFundDTO.getEquity().size());
 
@@ -108,6 +108,11 @@ public class MutualFundServiceImpl implements MutualFundService {
 		}
 
 		return "Processed Files: " + processedFiles + "\nSkipped Files: " + skippedFiles;
+	}
+
+	@Override
+	public List<FundsResponceDTO> getAllFunds() {
+		return fundRepository.getAllFunds();
 	}
 
 	public List<HoldingDetail> getFundHoldings(int fundId) {
