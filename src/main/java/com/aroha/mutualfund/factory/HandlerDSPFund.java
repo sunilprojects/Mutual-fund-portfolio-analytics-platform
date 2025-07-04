@@ -34,7 +34,6 @@ public class HandlerDSPFund implements MutualFundFile {
 	private static final int MARKET_VALUE_COL = 5;
 	private static final int NET_ASSET_COL = 6;
 
-	// Processing DSP Mid cap fund file
 	@Override
 	public MutualFundDTO extractFile(Sheet sheet) {
 		log.info("==== DSP file processing started ====");
@@ -43,8 +42,6 @@ public class HandlerDSPFund implements MutualFundFile {
 			throw new FileFormatException("Invalid file format", "DSP Mid cap Fund");
 		}
 
-		// creating MutualFundDTO object and creating Arraylist to store list of
-		// equities
 		MutualFundDTO mutualFundDTO = new MutualFundDTO();
 		List<EquityDTO> equityList = new ArrayList<>();
 
@@ -55,12 +52,11 @@ public class HandlerDSPFund implements MutualFundFile {
 			log.info("==== DSP file Processed successfully ==== ");
 			return mutualFundDTO;
 		} catch (Exception e) {
-			log.error("error while processing " + mutualFundDTO.getFundName() + " !!!!");
+			log.error("error while processing DSP file !!!!");
 			throw new MutualFundProcessingException("Failed to process mutual fund data", mutualFundDTO.getFundName());
 		}
 	}
 
-	// Processing and extracting fund
 	private void extractFundInfo(Sheet sheet, MutualFundDTO mutualFundDTO) {
 		log.info("Fund extraction started");
 		String fundName = getCellStringValue(sheet.getRow(0), 1);
@@ -97,8 +93,9 @@ public class HandlerDSPFund implements MutualFundFile {
 				EquityDTO equityDTO = createEquityDTO(row);
 				if (equityDTO != null) {
 					equityList.add(equityDTO);
+					log.trace("Added equity: ", equityDTO.getInstrumentName());
 				}
-			} catch (FundValidationException e) {
+			} catch (Exception e) {
 				log.error("failed to process row !!!!");
 				throw new FundValidationException("Failed to process row " + (rowNum + 1),
 						"DSP Mutual Fund Allocation");
@@ -199,7 +196,7 @@ public class HandlerDSPFund implements MutualFundFile {
 			return LocalDate.parse(cleanDateText, DATE_FORMATTER);
 
 		} catch (DateTimeParseException e) {
-			log.error("Failed to parse date !!!! ", dateText, " " + e + "DSP Mutual Fund Allocation");
+			log.error("Failed to parse date !!!! ", dateText," "+ e);
 			throw new PortfolioDateParseException(
 					"Invalid date format: '" + dateText + "'. Expected format: 'MMMM d, yyyy'",
 					"DSP Mutual Fund Allocation");
