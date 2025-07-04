@@ -155,15 +155,15 @@ public class HandlerHDFCOpportunitiesFund implements MutualFundFile {
 			}
 			validCount++;
 
-			// Step 4: Print valid row
-			System.out.println("-----------------------------------------");
-			System.out.println("ISIN         : " + isin);
-			System.out.println("Name         : " + name);
-			System.out.println("Industry     : " + industry);
-			System.out.println("Quantity     : " + quantityStr);
-			System.out.println("Market Value : " + marketValueStr);
-			System.out.println("Net Assest   : " + netAssetStr);
-			System.out.println("-----------------------------------------");
+//			// Step 4: Print valid row
+//			System.out.println("-----------------------------------------");
+//			System.out.println("ISIN         : " + isin);
+//			System.out.println("Name         : " + name);
+//			System.out.println("Industry     : " + industry);
+//			System.out.println("Quantity     : " + quantityStr);
+//			System.out.println("Market Value : " + marketValueStr);
+//			System.out.println("Net Assest   : " + netAssetStr);
+//			System.out.println("-----------------------------------------");
 
 			try {
 				int quantity = Integer.parseInt(quantityStr.replace(",", "").split("\\.")[0]);

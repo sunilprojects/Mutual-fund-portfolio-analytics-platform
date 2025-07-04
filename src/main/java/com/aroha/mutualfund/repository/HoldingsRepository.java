@@ -11,7 +11,11 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import com.aroha.mutualfund.dto.HoldingDetail;
+import com.aroha.mutualfund.service.impl.MutualFundServiceImpl;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Repository
 public class HoldingsRepository {
 
