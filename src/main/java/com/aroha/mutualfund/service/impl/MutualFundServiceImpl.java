@@ -1,24 +1,29 @@
 
 package com.aroha.mutualfund.service.impl;
 
+import java.io.File;
+import java.io.OutputStream;
+import java.io.FileOutputStream;
+
+import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.aroha.mutualfund.dto.EquityDTO;
-
 import com.aroha.mutualfund.dto.FundsResponceDTO;
 
 import com.aroha.mutualfund.dto.HoldingDetail;
 
 import com.aroha.mutualfund.dto.MutualFundDTO;
+import com.aroha.mutualfund.exception.ExcelProcessingException;
 import com.aroha.mutualfund.factory.FilesFactory;
 import com.aroha.mutualfund.factory.MutualFundFile;
 import com.aroha.mutualfund.repository.FundRepository;
@@ -47,20 +52,16 @@ public class MutualFundServiceImpl implements MutualFundService {
 	}
 
 	@Override
-	public String processFundFile(MultipartFile[] files) {
+	public ResponseEntity<String> processFundFile(MultipartFile[] files) {
 		if (files == null || files.length == 0) {
-			return "No files uploaded";
+			return ResponseEntity.ok("No Files uploaded..");
 		}
-
-		List<String> processedFiles = new ArrayList<>();
-		List<String> skippedFiles = new ArrayList<>();
 
 		for (MultipartFile file : files) {
 			String filename = file.getOriginalFilename();
 
 			if (filename == null
 					|| (!filename.toLowerCase().endsWith(".xls") && !filename.toLowerCase().endsWith(".xlsx"))) {
-				skippedFiles.add(filename);
 				continue;
 			}
 
@@ -76,18 +77,15 @@ public class MutualFundServiceImpl implements MutualFundService {
 				System.out.println("updated filename:" + filename);
 
 				FilesFactory filesFactory = new FilesFactory();
-				// TODO: pass Multipart file name
 				MutualFundFile mutualFundFile = filesFactory.getFile(filename);
-				// TODO: handle null
-				// TODO: pass Sheet
 
 				MutualFundDTO mutualFundDTO = mutualFundFile.extractFile(sheet);
 				log.info("{}", mutualFundDTO.getEquity().size());
 
-				// TODO Data Validation
+				//Save file to folder
+				saveFileToFolder(file, "uploaded-files/success");
 
-				// Store in DB
-				// TODO: Pass actual username by fetching from postman
+
 				int fundid = fundRepository.insertFundIfNotExists(mutualFundDTO.getFundName(),
 						mutualFundDTO.getFundType(), "username");
 
@@ -103,21 +101,46 @@ public class MutualFundServiceImpl implements MutualFundService {
 				}
 
 			} catch (Exception e) {
-				skippedFiles.add(filename);
-				e.printStackTrace();
+				log.error("Failed to open or parse Excel file: {}", filename, e);
+				throw new  ExcelProcessingException("Failed to process Excel file: " , filename);
 			}
-		}
 
-		return "Processed Files: " + processedFiles + "\nSkipped Files: " + skippedFiles;
+		}
+		return ResponseEntity.ok("All Files processed succesfully..");
 	}
 
 	@Override
 	public List<FundsResponceDTO> getAllFunds() {
 		return fundRepository.getAllFunds();
 	}
+	@Override
+	public List<String> getSectorsByFundId(int fundId) {
+		return instrumentRepository.findSectorsByFundId(fundId);
+	}
 
 	public List<HoldingDetail> getFundHoldings(int fundId) {
 		return holdingsRepository.getHoldingsByFundId(fundId);
 	}
+
+	private void saveFileToFolder(MultipartFile file, String folderPath) throws IOException {
+		File dir = new File(folderPath);
+		if (!dir.exists()) {
+			dir.mkdirs(); // create the folder if it doesn't exist
+		}
+		 // Construct the full file path where the file will be saved (folderPath/filename)
+		String filePath = folderPath + File.separator + file.getOriginalFilename();
+		// Use try-with-resources to automatically close streams after use
+		try (InputStream in = file.getInputStream();// InputStream from the uploaded MultipartFile
+				OutputStream out = new FileOutputStream(filePath)) { // OutputStream to the destination file
+
+			byte[] buffer = new byte[1024];// Create a 1 KB buffer for efficient reading/writing
+			int length;
+			// Read from the input stream into the buffer and write to the output stream
+			while ((length = in.read(buffer)) > 0) {
+				out.write(buffer, 0, length); // Write only the number of bytes actually read
+			}
+		}
+	}
+
 
 }

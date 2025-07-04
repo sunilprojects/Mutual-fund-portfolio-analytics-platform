@@ -28,8 +28,7 @@ public class MutualFundController {
 
 	@PostMapping("/upload")
 	public ResponseEntity<String> uploadFundFile(@RequestParam("files") MultipartFile[] files) {
-		String result = mutualFundService.processFundFile(files);
-		return ResponseEntity.ok(result);
+		return mutualFundService.processFundFile(files);
 	}
 
 
@@ -38,10 +37,16 @@ public class MutualFundController {
 		List<FundsResponceDTO> funds = mutualFundService.getAllFunds();
 		return ResponseEntity.ok(funds);
 	}
-	
+	@GetMapping("/{fundId}/sectors")
+	public ResponseEntity<List<String>> getSectorsByFundId(@PathVariable int fundId) {
+		List<String> sector= mutualFundService.getSectorsByFundId(fundId);
+		return ResponseEntity.ok(sector);
+	}
 	@GetMapping("/{fundId}/holdings")
 	public ResponseEntity<List<HoldingDetail>> getHoldingsByFundId(@PathVariable int fundId) {
 		List<HoldingDetail> holdings = mutualFundService.getFundHoldings(fundId);
 		return ResponseEntity.ok(holdings);
 	}
+
+
 }
