@@ -32,7 +32,7 @@ public class FundRepository {
 
 		// Insert new fund
 		String sql = "INSERT INTO fund (fund_name, fund_type, created_date, created_by, updated_at, updated_by) "
-				+ "VALUES (?, ?, CURRENT_DATE, ?, CURRENT_DATE, ?)";
+				+ "VALUES (?, ?, CURRENT_TIMESTAMP, ?, CURRENT_TIMESTAMP, ?)";
 
 		KeyHolder keyHolder = new GeneratedKeyHolder();
 

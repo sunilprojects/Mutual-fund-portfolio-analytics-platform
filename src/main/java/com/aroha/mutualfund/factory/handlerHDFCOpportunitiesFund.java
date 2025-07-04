@@ -18,7 +18,6 @@ import org.apache.poi.ss.usermodel.Sheet;
 
 import com.aroha.mutualfund.dto.EquityDTO;
 import com.aroha.mutualfund.dto.MutualFundDTO;
-import com.aroha.mutualfund.exception.FileFormatException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,170 +25,171 @@ import lombok.extern.slf4j.Slf4j;
 public class HandlerHDFCOpportunitiesFund implements MutualFundFile {
 
 	private String getSafeValue(Row row, Integer colIndex) {
-		// If column index is null, return empty 
 		if (colIndex == null)
 			return "";
-		//  Get the cell at the given column index
 		Cell cell = row.getCell(colIndex);
 		if (cell == null)
 			return "";
-		// Determine the type of the cell and return appropriate value
+
 		switch (cell.getCellType()) {
 		case STRING:
-			// Return trimmed string value
 			return cell.getStringCellValue().trim();
 		case NUMERIC:
-			//  Return numeric value as string
 			return String.valueOf(cell.getNumericCellValue());
 		case BOOLEAN:
 			return String.valueOf(cell.getBooleanCellValue());
 		case FORMULA:
-			// Return the formula as a string 
 			return cell.getCellFormula();
 		default:
-			// Return empty string for unsupported types
 			return "";
 		}
 	}
 
 	@Override
 	public MutualFundDTO extractFile(Sheet sheet) {
+		// TODO Sunil
+		// TODO Auto-generated method stub
 		Map<String, Integer> columnIndexMap = new HashMap<>();
 		boolean headerMapped = false;
-		boolean startValidation = false;
-		// To collect parsed equity rows
+		int validCount = 0;
 		List<EquityDTO> equityList = new ArrayList<>();
-		//Fund data extracting
 		String fundName = "";
 		String fundType = "";
 		LocalDate dateOfPortfolio = null;
 
-		boolean fundInfoFound = false;
-		boolean dateFound = false;
-		
-		log.info("Starting to scan sheet for fund name and portfolio date...");
-		
-		//Extract fund name and portfolio date from top of sheet
-		outerLoop:
-			for (Row row : sheet) {
-				for (Cell cell : row) {
-					String value = getSafeValue(row, cell.getColumnIndex());
-					if (value.contains("HDFC Mid-Cap Opportunities Fund")) {
-						fundName = value.substring(0, value.indexOf("(")).trim();
-						String lower = value.toLowerCase();
-						if (lower.contains("mid cap")) fundType = "mid cap";
-						else if (lower.contains("small cap")) fundType = "small cap";
-						else if (lower.contains("large cap")) fundType = "large cap";
-						else fundType = "other";
-						fundInfoFound = true;
-					}
-					if (value.toLowerCase().contains("portfolio as on")) {
-						Pattern pattern = Pattern.compile("(\\d{1,2})-(\\w+)-(\\d{4})");
-						Matcher matcher = pattern.matcher(value);
-						if (matcher.find()) {
-							DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d-MMM-yyyy", Locale.ENGLISH);
-							dateOfPortfolio = LocalDate.parse(
-									matcher.group(1) + "-" + matcher.group(2) + "-" + matcher.group(3), formatter);
-							dateFound = true;
-						}
-					}
-					// Break if both found
-					if (fundInfoFound && dateFound) {
-						break outerLoop;
-					}
+		Row firstRow = sheet.getRow(0);
+		if (firstRow != null) {
+			System.out.print(" First Row Header: ");
+			for (Cell cell : firstRow) {
+				String value = getSafeValue(firstRow, cell.getColumnIndex());
+				// ✅ Extract fund name
+				if (value.contains("(")) {
+					fundName = value.substring(0, value.indexOf("(")).trim();
+				} else {
+					fundName = value.trim();
 				}
-			}
-		//validations for missing fundName
-		if (fundName.isEmpty()) {
-			log.error("Fund name not found in sheet.");
-			throw new FileFormatException("Fund name not found in the sheet.",fundName +"-"+dateOfPortfolio);
-		}
-		//validations for missing dateOfPortfolio
-		if (dateOfPortfolio == null) {
-			log.error("Portfolio date not found or invalid.");
-			throw new FileFormatException("Portfolio date not found or invalid format.",fundName +"-"+dateOfPortfolio);
-		}
-		
-		//for fields
-		for (Row row : sheet) {
-			if (row == null) continue;
 
-			//  Header mapping
+				// ✅ Extract fund type from inside brackets
+				if (value.toLowerCase().contains("mid cap")) {
+					fundType = "mid cap";
+				} else if (value.toLowerCase().contains("small cap")) {
+					fundType = "small cap";
+				} else if (value.toLowerCase().contains("large cap")) {
+					fundType = "large cap";
+				} else {
+					fundType = "other";
+				}
+				break; // only first cell
+
+			}
+		}
+
+		Row secondRow = sheet.getRow(1);
+		if (secondRow != null) {
+			for (Cell cell : secondRow) {
+				String value = getSafeValue(secondRow, cell.getColumnIndex());
+				System.out.println("📄 Second Row: " + value);
+
+				// Try to extract date using regex
+				Pattern datePattern = Pattern.compile("(\\d{1,2})-(\\w+)-(\\d{4})"); // e.g., 30-Apr-2025
+				Matcher matcher = datePattern.matcher(value);
+
+				if (matcher.find()) {
+					String day = matcher.group(1);
+					String monthStr = matcher.group(2);
+					String year = matcher.group(3);
+
+					DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d-MMM-yyyy", Locale.ENGLISH);
+					dateOfPortfolio = LocalDate.parse(day + "-" + monthStr + "-" + year, formatter);
+
+					System.out.println("✅ Report Date: " + dateOfPortfolio);
+				}
+				break; // only first cell
+			}
+		}
+
+		for (Row row : sheet) {
+			if (row == null || row.getPhysicalNumberOfCells() == 0)
+				continue;
+
+//	        System.out.println("🔍 Checking Row Num: " + row.getRowNum());
+
+			// Step 1: Detect header row (NO Coupon % here)
 			if (!headerMapped) {
 				for (Cell cell : row) {
-					String header = getSafeValue(row, cell.getColumnIndex());
-					if (header.equalsIgnoreCase("ISIN")) columnIndexMap.put("ISIN", cell.getColumnIndex());
-					else if (header.equalsIgnoreCase("Name Of the Instrument")) columnIndexMap.put("Name", cell.getColumnIndex());
-					else if (header.equalsIgnoreCase("Industry+ /Rating")) columnIndexMap.put("Industry", cell.getColumnIndex());
-					else if (header.equalsIgnoreCase("Quantity")) columnIndexMap.put("Quantity", cell.getColumnIndex());
-					else if (header.equalsIgnoreCase("Market/ Fair Value (Rs. in Lacs.)")) columnIndexMap.put("MarketValue", cell.getColumnIndex());
-					else if (header.equalsIgnoreCase("% to NAV")) columnIndexMap.put("NetAsset", cell.getColumnIndex());
+					if (cell.getCellType() == CellType.STRING) {
+						String header = cell.getStringCellValue().trim();
+//	                    System.out.println("header:"+header);
+						if (header.equalsIgnoreCase("ISIN") || header.equalsIgnoreCase("Name Of the Instrument")
+								|| header.equalsIgnoreCase("Industry+ /Rating") || header.equalsIgnoreCase("Quantity")
+								|| header.equalsIgnoreCase("Market/ Fair Value (Rs. in Lacs.)")
+								|| header.equalsIgnoreCase("% to NAV")) {
+							columnIndexMap.put(header, cell.getColumnIndex());
+						}
+					}
 				}
-				//  If all 6 columns found, mapping is complete
-				if (columnIndexMap.size() == 6) headerMapped = true;
+
+				if (columnIndexMap.size() == 6) {
+					headerMapped = true;
+//	                System.out.println("✅ Header Found at Row: " + row.getRowNum());
+//	                System.out.println("📌 Column Index Map: " + columnIndexMap);
+				}
 				continue;
 			}
 
-			// Extract values
+			// Step 2: Extract values (excluding coupon)
 			String isin = getSafeValue(row, columnIndexMap.get("ISIN"));
-			String name = getSafeValue(row, columnIndexMap.get("Name"));
-			String industry = getSafeValue(row, columnIndexMap.get("Industry"));
+			String name = getSafeValue(row, columnIndexMap.get("Name Of the Instrument"));
+			String industry = getSafeValue(row, columnIndexMap.get("Industry+ /Rating"));
 			String quantityStr = getSafeValue(row, columnIndexMap.get("Quantity"));
-			String marketValueStr = getSafeValue(row, columnIndexMap.get("MarketValue"));
-			String netAssetStr = getSafeValue(row, columnIndexMap.get("NetAsset"));
+			String marketValueStr = getSafeValue(row, columnIndexMap.get("Market/ Fair Value (Rs. in Lacs.)"));
+			String netAssetStr = getSafeValue(row, columnIndexMap.get("% to NAV"));
 
-			// Step 3: Count non-empty required fields
-			int nonEmptyCount = 0;
-			if (!isin.isEmpty()) nonEmptyCount++;
-			if (!name.isEmpty()) nonEmptyCount++;
-			if (!industry.isEmpty()) nonEmptyCount++;
-			if (!quantityStr.isEmpty()) nonEmptyCount++;
-			if (!marketValueStr.isEmpty()) nonEmptyCount++;
-			if (!netAssetStr.isEmpty()) nonEmptyCount++;
+//	        System.out.println("🧾 Raw Values: ISIN=" + isin + ", Name=" + name + ", Industry=" + industry + ", Qty=" + quantity + ", MV=" + marketValue);
 
-			// Skipping pre-data footer rows like row 6, 7, 88
-			if (nonEmptyCount < 6) {
-				if (!startValidation) {
-					log.warn(" Skipping row {} due to missing fields.", row.getRowNum() + 1);
-					continue; //Before real data begins
-				} else {
-					continue; //After data start, still allow skipping blank rows
-				}
+			// Step 3: Only print row if all required fields are present
+			if (isin.isEmpty() || name.isEmpty() || industry.isEmpty() || quantityStr.isEmpty()
+					|| marketValueStr.isEmpty() || netAssetStr.isEmpty()) {
+//	            System.out.println("❌ Skipping Row (Required field missing)");
+				continue;
 			}
+			validCount++;
 
-			//  First valid data row found
-			if (!startValidation) startValidation = true;
+//			// Step 4: Print valid row
+//			System.out.println("-----------------------------------------");
+//			System.out.println("ISIN         : " + isin);
+//			System.out.println("Name         : " + name);
+//			System.out.println("Industry     : " + industry);
+//			System.out.println("Quantity     : " + quantityStr);
+//			System.out.println("Market Value : " + marketValueStr);
+//			System.out.println("Net Assest   : " + netAssetStr);
+//			System.out.println("-----------------------------------------");
 
-			//  parsing fileds
 			try {
 				int quantity = Integer.parseInt(quantityStr.replace(",", "").split("\\.")[0]);
 				BigDecimal marketValue = new BigDecimal(marketValueStr.replace(",", ""));
 				BigDecimal netAsset = new BigDecimal(netAssetStr.replace(",", ""));
-				// Build EquityDTO and add to list
-				EquityDTO equityDTO = EquityDTO.builder()
-						.isin(isin)
-						.instrumentName(name)
-						.sector(industry)
-						.quantity(quantity)
-						.marketValue(marketValue)
-						.netAsset(netAsset)
-						.build();
+
+				EquityDTO equityDTO = EquityDTO.builder().isin(isin).instrumentName(name).sector(industry)
+						.quantity(quantity).marketValue(marketValue).netAsset(netAsset).build();
 
 				equityList.add(equityDTO);
 
 			} catch (Exception e) {
-				log.error(" Error parsing row {}: {}", row.getRowNum() + 1, e.getMessage());
-				throw new FileFormatException("Error parsing row " + (row.getRowNum() + 1) + ": " ,  fundName +"-"+dateOfPortfolio);
+				System.out.println("⚠️ Skipping row due to parsing error: " + e.getMessage());
 			}
+
 		}
-		// Build and return the final MutualFundDTO
-		return MutualFundDTO.builder()
-				.fundName(fundName)
-				.fundType(fundType)
-				.dateOfPortfolio(dateOfPortfolio)
-				.equity(equityList)
-				.createdBy(null)
-				.updatedBy(null)
-				.build();
+
+		System.out.println("validCount:" + validCount);
+		System.out.println("fundName: " + fundName);
+		System.out.println("fundtype: " + fundType);
+		System.out.println("dateof portfolio:" + dateOfPortfolio);
+
+		return MutualFundDTO.builder().fundName(fundName).fundType(fundType).dateOfPortfolio(dateOfPortfolio)
+				.createdBy(null) // or set default like "system"
+				.updatedBy(null).equity(equityList).build();
+
 	}
+
 }

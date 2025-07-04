@@ -8,18 +8,24 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
 
 import com.aroha.mutualfund.dto.EquityDTO;
 import com.aroha.mutualfund.dto.MutualFundDTO;
+import com.aroha.mutualfund.exception.FileFormatException;
+import com.aroha.mutualfund.exception.FundValidationException;
+import com.aroha.mutualfund.exception.MutualFundProcessingException;
+import com.aroha.mutualfund.exception.PortfolioDateParseException;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class HandlerDSPFund implements MutualFundFile {
 
 	private static final Pattern DATE_PREFIX_PATTERN = Pattern.compile(".*[Aa]s [Oo]n");
-	private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("MMMM d, yyyy"); // "June 30,
-																											// 2023"
+	private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("MMMM d, yyyy");
 	private static final int DATA_START_ROW = 7;
 	private static final int INSTRUMENT_NAME_COL = 1;
 	private static final int ISIN_CODE_COL = 2;
@@ -30,43 +36,72 @@ public class HandlerDSPFund implements MutualFundFile {
 
 	@Override
 	public MutualFundDTO extractFile(Sheet sheet) {
+		log.info("==== DSP file processing started ====");
 		if (sheet == null) {
-			throw new IllegalArgumentException("Sheet cannot be null");
+			log.error("Provided sheet is null");
+			throw new FileFormatException("Invalid file format", "DSP Mid cap Fund");
 		}
 
 		MutualFundDTO mutualFundDTO = new MutualFundDTO();
 		List<EquityDTO> equityList = new ArrayList<>();
 
-		extractFundInfo(sheet, mutualFundDTO);
-		processHoldingsData(sheet, equityList);
-
-		mutualFundDTO.setEquity(equityList);
-		return mutualFundDTO;
+		try {
+			extractFundInfo(sheet, mutualFundDTO);
+			processHoldingsData(sheet, equityList);
+			mutualFundDTO.setEquity(equityList);
+			log.info("==== DSP file Processed successfully ==== ");
+			return mutualFundDTO;
+		} catch (Exception e) {
+			log.error("error while processing DSP file !!!!");
+			throw new MutualFundProcessingException("Failed to process mutual fund data", mutualFundDTO.getFundName());
+		}
 	}
 
 	private void extractFundInfo(Sheet sheet, MutualFundDTO mutualFundDTO) {
+		log.info("Fund extraction started");
 		String fundName = getCellStringValue(sheet.getRow(0), 1);
-		LocalDate portfolioDate = parsePortfolioDate(getCellStringValue(sheet.getRow(1), 1));
+		if (fundName == null || fundName.trim().isEmpty()) {
+			log.error("fund name is empty !!!!");
+			throw new FundValidationException("Fund name is empty", mutualFundDTO.getFundName());
+		}
+
+		String dateText = getCellStringValue(sheet.getRow(1), 1);
+		LocalDate portfolioDate = parsePortfolioDate(dateText);
 
 		mutualFundDTO.setFundName(fundName);
 		mutualFundDTO.setFundType(determineFundType(fundName));
 		mutualFundDTO.setDateOfPortfolio(portfolioDate);
+		log.info("Fund extraction ends", mutualFundDTO.getFundName(), mutualFundDTO.getFundType(),
+				mutualFundDTO.getDateOfPortfolio());
 	}
 
 	private void processHoldingsData(Sheet sheet, List<EquityDTO> equityList) {
+		log.debug("Starting to process holdings data from row {}", DATA_START_ROW);
 		for (int rowNum = DATA_START_ROW; rowNum <= sheet.getLastRowNum(); rowNum++) {
 			Row row = sheet.getRow(rowNum);
-			if (row == null)
+			if (row == null) {
+				log.debug("Skipping null row at index : ", rowNum);
 				continue;
-
-			if (isLastEquity(row))
+			}
+			if (isLastEquity(row)) {
+				log.debug("Reached end of equity data at row : ", rowNum);
 				break;
 
-			EquityDTO equityDTO = createEquityDTO(row);
-			if (equityDTO != null) {
-				equityList.add(equityDTO);
+			}
+
+			try {
+				EquityDTO equityDTO = createEquityDTO(row);
+				if (equityDTO != null) {
+					equityList.add(equityDTO);
+					log.trace("Added equity: ", equityDTO.getInstrumentName());
+				}
+			} catch (Exception e) {
+				log.error("failed to process row !!!!");
+				throw new FundValidationException("Failed to process row " + (rowNum + 1),
+						"DSP Mutual Fund Allocation");
 			}
 		}
+		log.info("Processed equity holdings : ", equityList.size());
 	}
 
 	private boolean isLastEquity(Row row) {
@@ -78,42 +113,45 @@ public class HandlerDSPFund implements MutualFundFile {
 		String instrumentName = getCellStringValue(row, INSTRUMENT_NAME_COL);
 		String isinCode = getCellStringValue(row, ISIN_CODE_COL);
 		String sector = getCellStringValue(row, SECTOR_COL);
-		// Validate required fields - throw exception if any are empty
-		if (instrumentName.isEmpty()) {
-			throw new IllegalStateException("Missing instrument name in row " + (row.getRowNum() + 1));
-		}
-		if (isinCode.isEmpty()) {
-			throw new IllegalStateException("Missing ISIN code in row " + (row.getRowNum() + 1));
-		}
-		if (sector.isEmpty()) {
-			throw new IllegalStateException("Missing sector in row " + (row.getRowNum() + 1));
-		}
-		try {
-			EquityDTO equityDTO = new EquityDTO();
-			equityDTO.setInstrumentName(instrumentName);
-			equityDTO.setIsin(isinCode);
-			equityDTO.setSector(sector);
-			equityDTO.setQuantity((int) getCellNumericValue(row, QUANTITY_COL));
-			equityDTO.setMarketValue(new BigDecimal(getCellStringValue(row, MARKET_VALUE_COL)));
 
-			double rawNetAsset = getCellNumericValue(row, NET_ASSET_COL);
-			equityDTO.setNetAsset(BigDecimal.valueOf(rawNetAsset).multiply(BigDecimal.valueOf(100)));
-
-			return equityDTO;
-		} catch (NumberFormatException e) {
-			throw new IllegalStateException("Invalid numeric value in row " + row.getRowNum(), e);
+		if (instrumentName == null || instrumentName.trim().isEmpty()) {
+			log.error("Missing instrument name in row " + (row.getRowNum() + 1), "DSP Mutual Fund Allocation");
+			throw new FundValidationException("Missing instrument name in row " + (row.getRowNum() + 1),
+					"DSP Mutual Fund Allocation");
 		}
+		if (isinCode == null || isinCode.trim().isEmpty()) {
+			log.error("Missing ISIN code in row " + (row.getRowNum() + 1), "DSP Mutual Fund Allocation");
+			throw new FundValidationException("Missing ISIN code in row " + (row.getRowNum() + 1),
+					"DSP Mutual Fund Allocation");
+		}
+		if (sector == null || sector.trim().isEmpty()) {
+			log.error("Missing sector in row " + (row.getRowNum() + 1), "DSP Mutual Fund Allocation");
+			throw new FundValidationException("Missing sector in row " + (row.getRowNum() + 1),
+					"DSP Mutual Fund Allocation");
+		}
+
+		int quantity = (int) getCellNumericValue(row, QUANTITY_COL);
+		BigDecimal marketValue = new BigDecimal(getCellNumericValue(row, MARKET_VALUE_COL));
+		BigDecimal netAsset = BigDecimal.valueOf(getCellNumericValue(row, NET_ASSET_COL))
+				.multiply(BigDecimal.valueOf(100));
+
+		EquityDTO equityDTO = new EquityDTO();
+		equityDTO.setInstrumentName(instrumentName);
+		equityDTO.setIsin(isinCode);
+		equityDTO.setSector(sector);
+		equityDTO.setQuantity(quantity);
+		equityDTO.setMarketValue(marketValue);
+		equityDTO.setNetAsset(netAsset);
+		return equityDTO;
 	}
 
 	private String getCellStringValue(Row row, int columnIndex) {
-		if (row == null) {
-			throw new IllegalArgumentException("Row cannot be null");
-		}
+		if (row == null)
+			return "";
 
 		Cell cell = row.getCell(columnIndex);
-		if (cell == null) {
+		if (cell == null)
 			return "";
-		}
 
 		switch (cell.getCellType()) {
 		case STRING:
@@ -126,13 +164,11 @@ public class HandlerDSPFund implements MutualFundFile {
 	}
 
 	private double getCellNumericValue(Row row, int columnIndex) {
-		if (row == null) {
-			throw new IllegalArgumentException("Row cannot be null");
-		}
-
 		Cell cell = row.getCell(columnIndex);
 		if (cell == null) {
-			throw new IllegalStateException("Cell at column " + columnIndex + " is null");
+			log.error("Missing numeric cell at column " + columnIndex, "DSP Mutual Fund Allocation");
+			throw new FundValidationException("Missing numeric cell at column " + columnIndex,
+					"DSP Mutual Fund Allocation");
 		}
 
 		switch (cell.getCellType()) {
@@ -140,35 +176,37 @@ public class HandlerDSPFund implements MutualFundFile {
 			return cell.getNumericCellValue();
 		case STRING:
 			String value = cell.getStringCellValue().trim();
-			if (value.isEmpty()) {
-				throw new NumberFormatException("Empty string value");
-			}
+			if (value.isEmpty())
+				throw new FundValidationException("Empty numeric value", "DSP Mutual Fund Allocation");
 			return Double.parseDouble(value);
 		default:
-			throw new IllegalStateException("Unsupported cell type at column " + columnIndex);
+			throw new FundValidationException("Unsupported cell type at column " + columnIndex,
+					"DSP Mutual Fund Allocation");
 		}
 	}
 
 	private LocalDate parsePortfolioDate(String dateText) {
 		if (dateText == null || dateText.trim().isEmpty()) {
-			throw new IllegalArgumentException("Date text cannot be null or empty");
+			log.error("Date text is null or empty !!!!");
+			throw new PortfolioDateParseException("Portfolio date is missing or empty", "DSP Mutual Fund Allocation");
 		}
-
-		String cleanDateText = DATE_PREFIX_PATTERN.matcher(dateText).replaceFirst("").trim();
 
 		try {
+			String cleanDateText = DATE_PREFIX_PATTERN.matcher(dateText).replaceFirst("").trim();
 			return LocalDate.parse(cleanDateText, DATE_FORMATTER);
+
 		} catch (DateTimeParseException e) {
-			throw new DateTimeParseException(
-					"Unable to parse date: " + dateText + ". Expected format: 'MMMM d, yyyy' (e.g., 'June 30, 2023')",
-					dateText, 0);
+			log.error("Failed to parse date !!!! ", dateText," "+ e);
+			throw new PortfolioDateParseException(
+					"Invalid date format: '" + dateText + "'. Expected format: 'MMMM d, yyyy'",
+					"DSP Mutual Fund Allocation");
 		}
+
 	}
 
 	private String determineFundType(String fundName) {
-		if (fundName == null || fundName.trim().isEmpty()) {
+		if (fundName == null || fundName.trim().isEmpty())
 			return "Other";
-		}
 
 		String upperName = fundName.toUpperCase();
 		if (upperName.contains("MID CAP"))

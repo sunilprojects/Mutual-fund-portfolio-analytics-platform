@@ -52,7 +52,7 @@ public class MutualFundServiceImpl implements MutualFundService {
 	}
 
 	@Override
-	public ResponseEntity<String> processFundFile(MultipartFile[] files) {
+	public ResponseEntity<String> processFundFile(MultipartFile[] files,String userName) {
 		if (files == null || files.length == 0) {
 			return ResponseEntity.ok("No Files uploaded..");
 		}
@@ -79,7 +79,18 @@ public class MutualFundServiceImpl implements MutualFundService {
 				FilesFactory filesFactory = new FilesFactory();
 				MutualFundFile mutualFundFile = filesFactory.getFile(filename);
 
+				MutualFundDTO fieldList = mutualFundFile.extractFile(sheet);
+
+				log.info("{}", fieldList.getEquity().size());
+				
+				if(mutualFundFile==null) {
+					continue;
+				}
+				// TODO: handle null
+				// TODO: pass Sheet
+
 				MutualFundDTO mutualFundDTO = mutualFundFile.extractFile(sheet);
+				processedFiles.add(filename);
 				log.info("{}", mutualFundDTO.getEquity().size());
 
 				//Save file to folder
@@ -87,16 +98,16 @@ public class MutualFundServiceImpl implements MutualFundService {
 
 
 				int fundid = fundRepository.insertFundIfNotExists(mutualFundDTO.getFundName(),
-						mutualFundDTO.getFundType(), "username");
+						mutualFundDTO.getFundType(), userName);
 
 				if (mutualFundDTO.getEquity() != null) {
 					for (EquityDTO equity : mutualFundDTO.getEquity()) {
-						log.info("MarketValue:{}", equity.getMarketValue());
+						//log.info("MarketValue:{}", equity.getMarketValue());
 						int instrumentId = instrumentRepository.insertInstrumentIfNotExists(equity.getIsin(),
-								equity.getInstrumentName(), equity.getSector(), "username");
-						int holdingId = holdingsRepository.insertHoldingIfNotExists(fundid, instrumentId, "username");
+								equity.getInstrumentName(), equity.getSector(), userName);
+						int holdingId = holdingsRepository.insertHoldingIfNotExists(fundid, instrumentId, userName);
 						holdingTransactionsRepository.upsertTransaction(holdingId, mutualFundDTO.getDateOfPortfolio(),
-								equity.getQuantity(), equity.getMarketValue(), equity.getNetAsset(), "username");
+								equity.getQuantity(), equity.getMarketValue(), equity.getNetAsset(), userName);
 					}
 				}
 
@@ -107,6 +118,7 @@ public class MutualFundServiceImpl implements MutualFundService {
 
 		}
 		return ResponseEntity.ok("All Files processed succesfully..");
+		return "Processed Files: " + processedFiles + "\nSkipped Files:" + skippedFiles+  " !!!!!";
 	}
 
 	@Override
