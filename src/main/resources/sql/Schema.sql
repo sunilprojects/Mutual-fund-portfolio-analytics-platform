@@ -27,7 +27,6 @@ CREATE TABLE holdings (
     FOREIGN KEY (instrument_id) REFERENCES instrument(instrument_id)
 );
 
-
 CREATE TABLE holding_transactions (
     transaction_id INT AUTO_INCREMENT PRIMARY KEY,
     holding_id INT NOT NULL,

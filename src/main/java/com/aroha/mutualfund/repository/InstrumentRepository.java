@@ -31,7 +31,7 @@ public class InstrumentRepository {
 
 		// Insert new instrument
 		String sql = "INSERT INTO instrument (isin, instrument_name, sector, created_date, created_by, updated_at, updated_by) "
-				+ "VALUES (?, ?, ?, CURRENT_DATE, ?, CURRENT_DATE, ?)";
+				+ "VALUES (?, ?, ?, CURRENT_TIMESTAMP, ?, CURRENT_TIMESTAMP, ?)";
 
 		KeyHolder keyHolder = new GeneratedKeyHolder();
 
