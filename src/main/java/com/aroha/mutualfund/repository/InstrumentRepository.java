@@ -10,6 +10,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+
 @Repository
 public class InstrumentRepository {
 
@@ -50,4 +51,13 @@ public class InstrumentRepository {
 
 		return Objects.requireNonNull(keyHolder.getKey()).intValue();
 	}
+	
+    public List<String> findSectorsByFundId(int fundId) {
+        String sql = "SELECT i.sector " +
+                     "FROM instrument i " +
+                     "JOIN holdings h ON h.instrument_id = i.instrument_id " +
+                     "JOIN fund f ON f.fund_id = h.fund_id " +
+                     "WHERE f.fund_id = ?";
+        return jdbcTemplate.queryForList(sql, String.class, fundId);
+    }
 }

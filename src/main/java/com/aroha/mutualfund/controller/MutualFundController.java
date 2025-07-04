@@ -1,3 +1,4 @@
+
 package com.aroha.mutualfund.controller;
 
 import java.util.List;
@@ -27,8 +28,7 @@ public class MutualFundController {
 
 	@PostMapping("/upload")
 	public ResponseEntity<String> uploadFundFile(@RequestParam("files") MultipartFile[] files,@RequestParam String userName) {
-		String result = mutualFundService.processFundFile(files,userName);
-		return ResponseEntity.ok(result);
+	 return	 mutualFundService.processFundFile(files,userName);
 	}
 
 	@GetMapping
@@ -37,9 +37,17 @@ public class MutualFundController {
 		return ResponseEntity.ok(funds);
 	}
 
+	@GetMapping("/{fundId}/sectors")
+	public ResponseEntity<List<String>> getSectorsByFundId(@PathVariable int fundId) {
+		List<String> sector= mutualFundService.getSectorsByFundId(fundId);
+		return ResponseEntity.ok(sector);
+	}
+
 	@GetMapping("/{fundId}/holdings")
 	public ResponseEntity<List<HoldingDetail>> getHoldingsByFundId(@PathVariable int fundId) {
 		List<HoldingDetail> holdings = mutualFundService.getFundHoldings(fundId);
 		return ResponseEntity.ok(holdings);
 	}
+
+
 }

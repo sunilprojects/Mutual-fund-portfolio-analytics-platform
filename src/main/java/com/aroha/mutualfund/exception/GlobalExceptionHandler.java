@@ -54,6 +54,20 @@ public class GlobalExceptionHandler {
 		return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
 	}
 	
+
+	@ExceptionHandler( ExcelProcessingException.class)
+	public ResponseEntity<ErrorDetails> handleExcelProcessingException( ExcelProcessingException ex) {
+		ErrorDetails errorDetails = ErrorDetails.builder()
+				.timestamp(LocalDateTime.now())
+				.fileName(ex.getFileName())
+				.message(ex.getMessage())
+				.status(HttpStatus.BAD_REQUEST.name())
+				.statusCode(HttpStatus.BAD_REQUEST.value())
+				.build();
+		return new ResponseEntity<>(errorDetails,HttpStatus.BAD_REQUEST);
+	}
+	
+	
 	@ExceptionHandler(DBOperationFailureException.class)
 	public ResponseEntity<ErrorDetails> handleDBOperationFailureException(DBOperationFailureException ex) {
 		ErrorDetails errorDetails = ErrorDetails.builder()
@@ -79,5 +93,6 @@ public class GlobalExceptionHandler {
 
 		return new ResponseEntity<>(errorDetails,HttpStatus.INTERNAL_SERVER_ERROR);
 	}
+
 }
 	
