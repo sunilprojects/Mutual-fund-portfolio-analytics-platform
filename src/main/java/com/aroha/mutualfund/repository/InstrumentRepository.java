@@ -16,10 +16,12 @@ public class InstrumentRepository {
 
 	private final JdbcTemplate jdbcTemplate;
 
+	//Constructor injection
 	public InstrumentRepository(JdbcTemplate jdbcTemplate) {
 		this.jdbcTemplate = jdbcTemplate;
 	}
 
+	//To check and insert instrument details to instrument tables
 	public int insertInstrumentIfNotExists(String isin, String instrumentName, String sector, String createdBy) {
 		// Check if instrument already exists by ISIN (unique)
 		String checkSql = "SELECT instrument_id FROM instrument WHERE isin = ?";
@@ -34,6 +36,7 @@ public class InstrumentRepository {
 		String sql = "INSERT INTO instrument (isin, instrument_name, sector, created_date, created_by, updated_at, updated_by) "
 				+ "VALUES (?, ?, ?, CURRENT_TIMESTAMP, ?, CURRENT_TIMESTAMP, ?)";
 
+		//to store id after inserting
 		KeyHolder keyHolder = new GeneratedKeyHolder();
 
 		jdbcTemplate.update(connection -> {

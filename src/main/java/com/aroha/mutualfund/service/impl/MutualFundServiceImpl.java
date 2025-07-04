@@ -14,16 +14,18 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.http.ResponseEntity;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.aroha.mutualfund.dto.EquityDTO;
 import com.aroha.mutualfund.dto.FundsResponceDTO;
-
 import com.aroha.mutualfund.dto.HoldingDetail;
-
 import com.aroha.mutualfund.dto.MutualFundDTO;
 import com.aroha.mutualfund.exception.ExcelProcessingException;
+import com.aroha.mutualfund.exception.DBOperationFailureException;
 import com.aroha.mutualfund.factory.FilesFactory;
 import com.aroha.mutualfund.factory.MutualFundFile;
 import com.aroha.mutualfund.repository.FundRepository;
@@ -43,6 +45,7 @@ public class MutualFundServiceImpl implements MutualFundService {
 	private HoldingsRepository holdingsRepository;
 	private HoldingTransactionsRepository holdingTransactionsRepository;
 
+	//Constructor injection
 	public MutualFundServiceImpl(FundRepository mutualFundRepository, InstrumentRepository instrumentRepository,
 			HoldingsRepository holdingsRepository, HoldingTransactionsRepository holdingTransactionsRepository) {
 		this.fundRepository = mutualFundRepository;
@@ -51,6 +54,7 @@ public class MutualFundServiceImpl implements MutualFundService {
 		this.holdingTransactionsRepository = holdingTransactionsRepository;
 	}
 
+	//To process Uplaoded Files
 	@Override
 	public ResponseEntity<String> processFundFile(MultipartFile[] files,String userName) {
 		if (files == null || files.length == 0) {
@@ -77,9 +81,10 @@ public class MutualFundServiceImpl implements MutualFundService {
 				System.out.println("updated filename:" + filename);
 
 				FilesFactory filesFactory = new FilesFactory();
+
 				MutualFundFile mutualFundFile = filesFactory.getFile(filename);
-				
-				if(mutualFundFile==null) {
+
+				if (mutualFundFile == null) {
 					continue;
 					
 				}
@@ -87,23 +92,18 @@ public class MutualFundServiceImpl implements MutualFundService {
 				MutualFundDTO mutualFundDTO = mutualFundFile.extractFile(sheet);
 				log.info("{}", mutualFundDTO.getEquity().size());
 
+				
+
+				mutualFundDTO.setCreatedBy(userName);
+
+				log.info("Size of {} : {}", mutualFundDTO.getFundName() + "|" + mutualFundDTO.getDateOfPortfolio(),
+						mutualFundDTO.getEquity().size());
+
+				handleDBOperationToSaveFileDetails(mutualFundDTO);
+				
 				//Save file to folder
 				saveFileToFolder(file, "uploaded-files/success");
 
-
-				int fundid = fundRepository.insertFundIfNotExists(mutualFundDTO.getFundName(),
-						mutualFundDTO.getFundType(), userName);
-
-				if (mutualFundDTO.getEquity() != null) {
-					for (EquityDTO equity : mutualFundDTO.getEquity()) {
-						//log.info("MarketValue:{}", equity.getMarketValue());
-						int instrumentId = instrumentRepository.insertInstrumentIfNotExists(equity.getIsin(),
-								equity.getInstrumentName(), equity.getSector(), userName);
-						int holdingId = holdingsRepository.insertHoldingIfNotExists(fundid, instrumentId, userName);
-						holdingTransactionsRepository.upsertTransaction(holdingId, mutualFundDTO.getDateOfPortfolio(),
-								equity.getQuantity(), equity.getMarketValue(), equity.getNetAsset(), userName);
-					}
-				}
 
 			} catch (Exception e) {
 				log.error("Failed to open or parse Excel file: {}", filename, e);
@@ -114,6 +114,7 @@ public class MutualFundServiceImpl implements MutualFundService {
 		return ResponseEntity.ok("All Files processed succesfully..");
 	}
 
+	// To get all the funds
 	@Override
 	public List<FundsResponceDTO> getAllFunds() {
 		return fundRepository.getAllFunds();
@@ -147,5 +148,29 @@ public class MutualFundServiceImpl implements MutualFundService {
 		}
 	}
 
+	@Transactional
+	private void handleDBOperationToSaveFileDetails(MutualFundDTO mutualFundDTO) {
+		try {
+			int fundid = fundRepository.insertFundIfNotExists(mutualFundDTO.getFundName(), mutualFundDTO.getFundType(),
+					mutualFundDTO.getCreatedBy());
+
+			if (mutualFundDTO.getEquity() != null) {
+				for (EquityDTO equity : mutualFundDTO.getEquity()) {
+					// log.info("MarketValue:{}", equity.getMarketValue());
+					int instrumentId = instrumentRepository.insertInstrumentIfNotExists(equity.getIsin(),
+							equity.getInstrumentName(), equity.getSector(), mutualFundDTO.getCreatedBy());
+					int holdingId = holdingsRepository.insertHoldingIfNotExists(fundid, instrumentId,
+							mutualFundDTO.getCreatedBy());
+					holdingTransactionsRepository.upsertTransaction(holdingId, mutualFundDTO.getDateOfPortfolio(),
+							equity.getQuantity(), equity.getMarketValue(), equity.getNetAsset(),
+							mutualFundDTO.getCreatedBy());
+				}
+			}
+		} catch (DataIntegrityViolationException e) {
+			throw new DBOperationFailureException("Data integrity violation while doing DB Operation");
+		} catch (DataAccessException e) {
+			throw new DBOperationFailureException("Database access error");
+		}
+	}
 
 }
