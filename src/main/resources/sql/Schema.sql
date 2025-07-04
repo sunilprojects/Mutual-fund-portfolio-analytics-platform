@@ -2,9 +2,9 @@ CREATE TABLE fund (
     fund_id INT AUTO_INCREMENT PRIMARY KEY,
     fund_name VARCHAR(100) NOT NULL,
     fund_type VARCHAR(50) NOT NULL,
-    created_date DATE NOT NULL,
+    created_date DATETIME NOT NULL,
     created_by VARCHAR(100) NOT NULL,
-    updated_at Date NOT NULL,
+    updated_at DATETIME NOT NULL,
     updated_by VARCHAR(100) NOT NULL
     );
 
@@ -13,9 +13,9 @@ CREATE TABLE instrument (
     isin VARCHAR(25) UNIQUE NOT NULL,
     instrument_name VARCHAR(100) NOT NULL,
     sector VARCHAR(100) NOT NULL,
-    created_date DATE NOT NULL,
+    created_date DATETIME NOT NULL,
     created_by varchar(100) NOT NULL,
-    updated_at Date NOT NULL,
+    updated_at DATETIME NOT NULL,
     updated_by varchar(100) NOT NULL
 );
 
@@ -26,6 +26,8 @@ CREATE TABLE holdings (
     FOREIGN KEY (fund_id) REFERENCES fund(fund_id),
     FOREIGN KEY (instrument_id) REFERENCES instrument(instrument_id)
 );
+
+
 CREATE TABLE holding_transactions (
     transaction_id INT AUTO_INCREMENT PRIMARY KEY,
     holding_id INT NOT NULL,
@@ -33,9 +35,9 @@ CREATE TABLE holding_transactions (
     quantity INT NOT NULL,
     market_value DECIMAL(18,2) NOT NULL,
     net_asset DECIMAL(20, 15) NOT NULL,
-    created_date DATE NOT NULL,
+    created_date DATETIME NOT NULL,
     created_by varchar(100) NOT NULL,
-    updated_at Date NOT NULL,
+    updated_at DATETIME NOT NULL,
     updated_by varchar(100) NOT NULL,
     FOREIGN KEY ( holding_id) REFERENCES holdings( holding_id),
     CONSTRAINT uk_holding_date UNIQUE ( holding_id, date_of_portfolio)
