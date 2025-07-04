@@ -78,7 +78,6 @@ public class MutualFundServiceImpl implements MutualFundService {
 				if (filename.contains(" - ")) {
 					filename = filename.substring(0, filename.indexOf(" - ")).trim();
 				}
-				System.out.println("updated filename:" + filename);
 
 				FilesFactory filesFactory = new FilesFactory();
 

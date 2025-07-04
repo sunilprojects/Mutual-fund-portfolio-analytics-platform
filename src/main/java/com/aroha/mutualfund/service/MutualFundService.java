@@ -11,8 +11,6 @@ import com.aroha.mutualfund.dto.FundsResponceDTO;
 public interface MutualFundService {
 
 	ResponseEntity<String> processFundFile(MultipartFile[] file,String userName);
-
-
 	List<FundsResponceDTO> getAllFunds();
 	List<String> getSectorsByFundId(int fundId);
 
