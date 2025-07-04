@@ -21,6 +21,7 @@ public class HoldingsRepository {
 
 	private final JdbcTemplate jdbcTemplate;
 
+	//Constructor injection
 	public HoldingsRepository(JdbcTemplate jdbcTemplate) {
 		this.jdbcTemplate = jdbcTemplate;
 	}
@@ -38,6 +39,7 @@ public class HoldingsRepository {
 		// Insert new holding
 		String sql = "INSERT INTO holdings (fund_id, instrument_id) VALUES (?, ?)";
 
+		//to store id after inserting
 		KeyHolder keyHolder = new GeneratedKeyHolder();
 
 		jdbcTemplate.update(connection -> {
