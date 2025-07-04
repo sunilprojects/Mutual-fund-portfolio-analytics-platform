@@ -53,6 +53,8 @@ public class HandlerMiraeAssetFund implements MutualFundFile {
 	@Override
 	public MutualFundDTO extractFile(Sheet sheet) {
 
+		log.info("Mira Index Mutual Fund file processing");
+		
 		// To get the Fund Name
 		Row row = sheet.getRow(FUNDNAME_ROW);
 		Cell fundNameCell = row.getCell(FUNDNAME_COLUMN);
@@ -156,7 +158,7 @@ public class HandlerMiraeAssetFund implements MutualFundFile {
 			throw new FileFormatException("Incorrect header name", "Mira Index Mutual Fund" + " : " + dateOfPortpolio);
 		}
 
-		//DTO object to store fundname, fundtype
+		//DTO object to store fundname, fundtype and also a list to store equities
 		MutualFundDTO mutualFundDTO = new MutualFundDTO();
 		List<EquityDTO> listEquity = new ArrayList<>();
 
@@ -167,14 +169,17 @@ public class HandlerMiraeAssetFund implements MutualFundFile {
 		//Iterating over Equity
 		for (int rowIndex = EQUITY_START_ROW; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
 			
+			//Getting rows and checking for null
 			row = sheet.getRow(rowIndex);
 			if (row == null) {
 				throw new FileFormatException("Values Not Found",
 						"Mira Index Mutual Fund" + " : " + dateOfPortpolio);
 			}
 
+			//Creating object to store each row values
 			EquityDTO equityDTO = new EquityDTO();
 
+			//To get the instrument name column value and checking that is eaqual to "Sub Total" to end the loop
 			cell = row.getCell(INSTRUMENTNAME_COLUMN);
 			if (cell != null && cell.getCellType() == CellType.STRING && !cell.getStringCellValue().trim().isEmpty()) {
 				String instrumentName = cell.getStringCellValue().trim();
@@ -187,6 +192,8 @@ public class HandlerMiraeAssetFund implements MutualFundFile {
 						"Incorrect Values, at row:" + rowIndex + 1 + " column:Name of the Instrument",
 						"Mira Index Mutual Fund" + " : " + dateOfPortpolio);
 			}
+			
+			//To get the isin column values and checking for null
 			cell = row.getCell(ISIN_COLUMN);
 			if (cell != null && cell.getCellType() == CellType.STRING && !cell.getStringCellValue().trim().isEmpty()) {
 				equityDTO.setIsin(cell.getStringCellValue().trim());
@@ -195,6 +202,7 @@ public class HandlerMiraeAssetFund implements MutualFundFile {
 						"Mira Index Mutual Fund" + " : " + dateOfPortpolio);
 			}
 
+			//To get the industry column values and checking for null
 			cell = row.getCell(INDUSTRY_COLUMN);
 			if (cell != null && cell.getCellType() == CellType.STRING && !cell.getStringCellValue().trim().isEmpty()) {
 				equityDTO.setSector(cell.getStringCellValue().trim());
@@ -203,6 +211,7 @@ public class HandlerMiraeAssetFund implements MutualFundFile {
 						"Mira Index Mutual Fund" + " : " + dateOfPortpolio);
 			}
 
+			//To get the quantity column values and checking for null
 			cell = row.getCell(QUANTITY_COLUMN);
 			if (cell != null && cell.getCellType() == CellType.NUMERIC) {
 				equityDTO.setQuantity((int) cell.getNumericCellValue());
@@ -211,6 +220,7 @@ public class HandlerMiraeAssetFund implements MutualFundFile {
 						"Mira Index Mutual Fund" + " : " + dateOfPortpolio);
 			}
 
+			//To get the market value column values and checking for null
 			cell = row.getCell(MARKETVALUE_COLUMN);
 			if (cell != null && cell.getCellType() == CellType.NUMERIC) {
 				double numericValue = cell.getNumericCellValue();
@@ -222,6 +232,7 @@ public class HandlerMiraeAssetFund implements MutualFundFile {
 						"Mira Index Mutual Fund" + " : " + dateOfPortpolio);
 			}
 
+			//To get the net asset column values and checking for null
 			cell = row.getCell(NETASSET_COLUMN);
 			if (cell != null && cell.getCellType() == CellType.NUMERIC) {
 				double rawValue = cell.getNumericCellValue(); // will be 0.0007
@@ -231,13 +242,20 @@ public class HandlerMiraeAssetFund implements MutualFundFile {
 				throw new FileFormatException("Incorrect Values, at row:" + rowIndex + 1 + " column:% to Net Assets",
 						"Mira Index Mutual Fund" + " : " + dateOfPortpolio);
 			}
-
+			
+			//adding equities to the list
 			listEquity.add(equityDTO);
 		}
+		
+		//Once loop ends adding list of equities to the mutualFundDTO object
 		mutualFundDTO.setEquity(listEquity);
+		
+		log.info("Mira Index Mutual Fund file processing successful");
+		
 		return mutualFundDTO;
 	}
 
+	//To check Null values in cell
 	public void headerNullCheck(Cell cell, LocalDate dateOfPortpolio) {
 		if (cell == null) {
 			throw new FileFormatException("Header not found", "Mira Index Mutual Fund" + " : " + dateOfPortpolio);

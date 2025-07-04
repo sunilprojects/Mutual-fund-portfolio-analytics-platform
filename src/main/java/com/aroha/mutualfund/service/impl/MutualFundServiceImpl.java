@@ -91,6 +91,7 @@ public class MutualFundServiceImpl implements MutualFundService {
 
 				// Store in DB
 				// TODO: Pass actual username by fetching from postman
+				
 				int fundid = fundRepository.insertFundIfNotExists(mutualFundDTO.getFundName(),
 						mutualFundDTO.getFundType(), "username");
 
@@ -114,6 +115,7 @@ public class MutualFundServiceImpl implements MutualFundService {
 		return "Processed Files: " + processedFiles + "\nSkipped Files: " + skippedFiles;
 	}
 
+	//To get all the funds
 	@Override
 	public List<FundsResponceDTO> getAllFunds() {
 		return fundRepository.getAllFunds();

@@ -7,11 +7,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import lombok.extern.slf4j.Slf4j;
+
 @ControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
 	@ExceptionHandler(FileFormatException.class)
 	public ResponseEntity<ErrorDetails> handleFileFormatException(FileFormatException ex) {
+		
+		log.error("Error:{}, File Name:{}",ex.getMessage(),ex.getFileName());
 		ErrorDetails errorDetails = ErrorDetails.builder()
 				.timestamp(LocalDateTime.now())
 				.fileName(ex.getFileName())
@@ -21,5 +26,31 @@ public class GlobalExceptionHandler {
 				.build();
 
 		return new ResponseEntity<>(errorDetails,HttpStatus.BAD_REQUEST);
+	}
+	
+	@ExceptionHandler(DBOperationFailureException.class)
+	public ResponseEntity<ErrorDetails> handleDBOperationFailureException(DBOperationFailureException ex) {
+		ErrorDetails errorDetails = ErrorDetails.builder()
+				.timestamp(LocalDateTime.now())
+				.fileName("NA")
+				.message(ex.getMessage())
+				.status(HttpStatus.INTERNAL_SERVER_ERROR.name())
+				.statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
+				.build();
+
+		return new ResponseEntity<>(errorDetails,HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+	
+	@ExceptionHandler(Exception.class)
+	public ResponseEntity<ErrorDetails> handleGenericException(Exception ex) {
+		ErrorDetails errorDetails = ErrorDetails.builder()
+				.timestamp(LocalDateTime.now())
+				.fileName("NA")
+				.message(ex.getMessage())
+				.status(HttpStatus.INTERNAL_SERVER_ERROR.name())
+				.statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
+				.build();
+
+		return new ResponseEntity<>(errorDetails,HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 }

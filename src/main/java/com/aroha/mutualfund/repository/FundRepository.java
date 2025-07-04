@@ -5,6 +5,8 @@ import java.sql.Statement;
 import java.util.List;
 import java.util.Objects;
 
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -22,6 +24,7 @@ public class FundRepository {
 	}
 
 	public int insertFundIfNotExists(String fundName, String fundType, String createdBy) {
+
 		// Check if fund already exists
 		String checkSql = "SELECT fund_id FROM fund WHERE fund_name = ? AND fund_type = ?";
 		List<Integer> results = jdbcTemplate.query(checkSql, (rs, rowNum) -> rs.getInt("fund_id"), fundName, fundType);
@@ -52,9 +55,7 @@ public class FundRepository {
 		String sql = "SELECT fund_id,fund_name FROM fund";
 
 		List<FundsResponceDTO> funds = jdbcTemplate.query(sql, (res, row) -> {
-			return FundsResponceDTO.builder()
-					.fundId(res.getInt("fund_id"))
-					.fundName(res.getString("fund_name"))
+			return FundsResponceDTO.builder().fundId(res.getInt("fund_id")).fundName(res.getString("fund_name"))
 					.build();
 		});
 
