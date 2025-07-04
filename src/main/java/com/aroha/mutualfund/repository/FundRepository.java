@@ -5,6 +5,8 @@ import java.sql.Statement;
 import java.util.List;
 import java.util.Objects;
 
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -17,11 +19,14 @@ public class FundRepository {
 
 	private final JdbcTemplate jdbcTemplate;
 
+	//Constructor injection
 	public FundRepository(JdbcTemplate jdbcTemplate) {
 		this.jdbcTemplate = jdbcTemplate;
 	}
 
+	//To check and insert Fund details in fund tables
 	public int insertFundIfNotExists(String fundName, String fundType, String createdBy) {
+
 		// Check if fund already exists
 		String checkSql = "SELECT fund_id FROM fund WHERE fund_name = ? AND fund_type = ?";
 		List<Integer> results = jdbcTemplate.query(checkSql, (rs, rowNum) -> rs.getInt("fund_id"), fundName, fundType);
@@ -34,6 +39,7 @@ public class FundRepository {
 		String sql = "INSERT INTO fund (fund_name, fund_type, created_date, created_by, updated_at, updated_by) "
 				+ "VALUES (?, ?, CURRENT_TIMESTAMP, ?, CURRENT_TIMESTAMP, ?)";
 
+		//to store id after inserting
 		KeyHolder keyHolder = new GeneratedKeyHolder();
 
 		jdbcTemplate.update(connection -> {
@@ -48,13 +54,12 @@ public class FundRepository {
 		return Objects.requireNonNull(keyHolder.getKey()).intValue();
 	}
 
+	//To get all the funds
 	public List<FundsResponceDTO> getAllFunds() {
 		String sql = "SELECT fund_id,fund_name FROM fund";
 
 		List<FundsResponceDTO> funds = jdbcTemplate.query(sql, (res, row) -> {
-			return FundsResponceDTO.builder()
-					.fundId(res.getInt("fund_id"))
-					.fundName(res.getString("fund_name"))
+			return FundsResponceDTO.builder().fundId(res.getInt("fund_id")).fundName(res.getString("fund_name"))
 					.build();
 		});
 
