@@ -13,8 +13,4 @@ public class FileFormatException extends RuntimeException{
         return fileName;
     }
 	
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 53e4651aa86b6cd1566189e881bdb78d875e029b

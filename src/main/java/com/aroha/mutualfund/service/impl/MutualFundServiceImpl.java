@@ -78,19 +78,16 @@ public class MutualFundServiceImpl implements MutualFundService {
 				// TODO: pass Multipart file name
 				MutualFundFile mutualFundFile = filesFactory.getFile(filename);
 				
-<<<<<<< HEAD
 				MutualFundDTO fieldList = mutualFundFile.extractFile(sheet);
 
 				log.info("{}", fieldList.getEquity().size());
 				
-=======
 				if(mutualFundFile==null) {
 					continue;
 				}
 				// TODO: handle null
 				// TODO: pass Sheet
 
->>>>>>> 53e4651aa86b6cd1566189e881bdb78d875e029b
 				MutualFundDTO mutualFundDTO = mutualFundFile.extractFile(sheet);
 				processedFiles.add(filename);
 				log.info("{}", mutualFundDTO.getEquity().size());

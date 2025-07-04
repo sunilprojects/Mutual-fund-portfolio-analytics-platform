@@ -26,24 +26,17 @@ public class MutualFundController {
 	private MutualFundService mutualFundService;
 
 	@PostMapping("/upload")
-<<<<<<< HEAD
-	public ResponseEntity<String> uploadFundFile(@RequestParam("files") MultipartFile[] files,@RequestParam String userName ) {
-
-		String result = mutualFundService.processFundFile(files,userName);
-=======
 	public ResponseEntity<String> uploadFundFile(@RequestParam("files") MultipartFile[] files) {
 		String result = mutualFundService.processFundFile(files);
->>>>>>> 53e4651aa86b6cd1566189e881bdb78d875e029b
 		return ResponseEntity.ok(result);
 	}
-
 
 	@GetMapping
 	public ResponseEntity<List<FundsResponceDTO>> getAllFunds() {
 		List<FundsResponceDTO> funds = mutualFundService.getAllFunds();
 		return ResponseEntity.ok(funds);
 	}
-	
+
 	@GetMapping("/{fundId}/holdings")
 	public ResponseEntity<List<HoldingDetail>> getHoldingsByFundId(@PathVariable int fundId) {
 		List<HoldingDetail> holdings = mutualFundService.getFundHoldings(fundId);

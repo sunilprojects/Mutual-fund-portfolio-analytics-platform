@@ -12,7 +12,6 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(FileFormatException.class)
 	public ResponseEntity<ErrorDetails> handleFileFormatException(FileFormatException ex) {
-<<<<<<< HEAD
 		ErrorDetails errorDetails = ErrorDetails.builder().timestamp(LocalDateTime.now()).fileName(ex.getFileName())
 				.message(ex.getMessage()).status(HttpStatus.BAD_REQUEST.name())
 				.statusCode(HttpStatus.BAD_REQUEST.value()).build();
@@ -37,17 +36,13 @@ public class GlobalExceptionHandler {
 
 		return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
 	}
-}
-=======
-		ErrorDetails errorDetails = ErrorDetails.builder()
-				.timestamp(LocalDateTime.now())
-				.fileName(ex.getFileName())
-				.message(ex.getMessage())
-				.status(HttpStatus.BAD_REQUEST.name())
-				.statusCode(HttpStatus.BAD_REQUEST.value())
-				.build();
+	@ExceptionHandler(PortfolioDateParseException.class)
+	public ResponseEntity<ErrorDetails> handlePortfolioDateParseException(PortfolioDateParseException ex) {
+		ErrorDetails errorDetails = ErrorDetails.builder().timestamp(LocalDateTime.now()).fileName(ex.getFileName())
+				.message(ex.getMessage()).status(HttpStatus.BAD_REQUEST.name())
+				.statusCode(HttpStatus.BAD_REQUEST.value()).build();
 
-		return new ResponseEntity<>(errorDetails,HttpStatus.BAD_REQUEST);
+		return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
 	}
 }
->>>>>>> 53e4651aa86b6cd1566189e881bdb78d875e029b
+	
