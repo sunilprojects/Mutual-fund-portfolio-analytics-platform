@@ -28,8 +28,7 @@ public class MutualFundController {
 
 	@PostMapping("/upload")
 	public ResponseEntity<String> uploadFundFile(@RequestParam("files") MultipartFile[] files,@RequestParam String userName) {
-		String result = mutualFundService.processFundFile(files,userName);
-		return ResponseEntity.ok(result);
+	 return	 mutualFundService.processFundFile(files,userName);
 	}
 
 	@GetMapping

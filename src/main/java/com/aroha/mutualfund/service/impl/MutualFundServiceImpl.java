@@ -78,19 +78,13 @@ public class MutualFundServiceImpl implements MutualFundService {
 
 				FilesFactory filesFactory = new FilesFactory();
 				MutualFundFile mutualFundFile = filesFactory.getFile(filename);
-
-				MutualFundDTO fieldList = mutualFundFile.extractFile(sheet);
-
-				log.info("{}", fieldList.getEquity().size());
 				
 				if(mutualFundFile==null) {
 					continue;
+					
 				}
-				// TODO: handle null
-				// TODO: pass Sheet
 
 				MutualFundDTO mutualFundDTO = mutualFundFile.extractFile(sheet);
-				processedFiles.add(filename);
 				log.info("{}", mutualFundDTO.getEquity().size());
 
 				//Save file to folder
@@ -118,7 +112,6 @@ public class MutualFundServiceImpl implements MutualFundService {
 
 		}
 		return ResponseEntity.ok("All Files processed succesfully..");
-		return "Processed Files: " + processedFiles + "\nSkipped Files:" + skippedFiles+  " !!!!!";
 	}
 
 	@Override

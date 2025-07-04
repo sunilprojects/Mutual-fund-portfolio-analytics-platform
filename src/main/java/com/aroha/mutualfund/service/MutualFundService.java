@@ -10,7 +10,7 @@ import com.aroha.mutualfund.dto.FundsResponceDTO;
 
 public interface MutualFundService {
 
-	String processFundFile(MultipartFile[] file,String userName);
+	ResponseEntity<String> processFundFile(MultipartFile[] file,String userName);
 
 
 	List<FundsResponceDTO> getAllFunds();
