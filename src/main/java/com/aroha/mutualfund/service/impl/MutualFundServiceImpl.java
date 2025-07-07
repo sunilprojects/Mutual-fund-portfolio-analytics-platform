@@ -45,7 +45,7 @@ public class MutualFundServiceImpl implements MutualFundService {
 	private HoldingsRepository holdingsRepository;
 	private HoldingTransactionsRepository holdingTransactionsRepository;
 
-	//Constructor injection
+	// Constructor injection
 	public MutualFundServiceImpl(FundRepository mutualFundRepository, InstrumentRepository instrumentRepository,
 			HoldingsRepository holdingsRepository, HoldingTransactionsRepository holdingTransactionsRepository) {
 		this.fundRepository = mutualFundRepository;
@@ -54,9 +54,9 @@ public class MutualFundServiceImpl implements MutualFundService {
 		this.holdingTransactionsRepository = holdingTransactionsRepository;
 	}
 
-	//To process Uplaoded Files
+	// To process Uplaoded Files
 	@Override
-	public ResponseEntity<String> processFundFile(MultipartFile[] files,String userName) {
+	public ResponseEntity<String> processFundFile(MultipartFile[] files, String userName) {
 		if (files == null || files.length == 0) {
 			return ResponseEntity.ok("No Files uploaded..");
 		}
@@ -69,45 +69,46 @@ public class MutualFundServiceImpl implements MutualFundService {
 				continue;
 			}
 
-			try (InputStream inputStream = file.getInputStream();
-					Workbook workbook = filename.toLowerCase().endsWith(".xlsx") ? new XSSFWorkbook(inputStream)
-							: new HSSFWorkbook(inputStream)) {
+			InputStream inputStream;
+			Sheet sheet;
+			try {
+				inputStream = file.getInputStream();
+				Workbook workbook = filename.toLowerCase().endsWith(".xlsx") ? new XSSFWorkbook(inputStream)
+						: new HSSFWorkbook(inputStream);
+				sheet = workbook.getSheetAt(0);
+			} catch (IOException e) {
+				throw new ExcelProcessingException("Excel processing exception !!! : ", filename);
+			}
 
-				Sheet sheet = workbook.getSheetAt(0);
+			if (filename.contains(" - ")) {
+				filename = filename.substring(0, filename.indexOf(" - ")).trim();
+			}
+			System.out.println("updated filename:" + filename);
 
-				if (filename.contains(" - ")) {
-					filename = filename.substring(0, filename.indexOf(" - ")).trim();
-				}
-				System.out.println("updated filename:" + filename);
+			FilesFactory filesFactory = new FilesFactory();
 
-				FilesFactory filesFactory = new FilesFactory();
+			MutualFundFile mutualFundFile = filesFactory.getFile(filename);
 
-				MutualFundFile mutualFundFile = filesFactory.getFile(filename);
+			if (mutualFundFile == null) {
+				continue;
 
-				if (mutualFundFile == null) {
-					continue;
-					
-				}
+			}
 
-				MutualFundDTO mutualFundDTO = mutualFundFile.extractFile(sheet);
-				log.info("{}", mutualFundDTO.getEquity().size());
+			MutualFundDTO mutualFundDTO = mutualFundFile.extractFile(sheet);
+			log.info("{}", mutualFundDTO.getEquity().size());
 
-				
+			mutualFundDTO.setCreatedBy(userName);
 
-				mutualFundDTO.setCreatedBy(userName);
+			log.info("Size of {} : {}", mutualFundDTO.getFundName() + "|" + mutualFundDTO.getDateOfPortfolio(),
+					mutualFundDTO.getEquity().size());
 
-				log.info("Size of {} : {}", mutualFundDTO.getFundName() + "|" + mutualFundDTO.getDateOfPortfolio(),
-						mutualFundDTO.getEquity().size());
+			handleDBOperationToSaveFileDetails(mutualFundDTO);
 
-				handleDBOperationToSaveFileDetails(mutualFundDTO);
-				
-				//Save file to folder
+			// Save file to folder
+			try {
 				saveFileToFolder(file, "uploaded-files/success");
-
-
-			} catch (Exception e) {
-				log.error("Failed to open or parse Excel file: {}", filename, e);
-				throw new  ExcelProcessingException("Failed to process Excel file: " , filename);
+			} catch (IOException e) {
+				throw new ExcelProcessingException("Excel processing exception !!! : ", filename);
 			}
 
 		}
@@ -119,6 +120,7 @@ public class MutualFundServiceImpl implements MutualFundService {
 	public List<FundsResponceDTO> getAllFunds() {
 		return fundRepository.getAllFunds();
 	}
+
 	@Override
 	public List<String> getSectorsByFundId(int fundId) {
 		return instrumentRepository.findSectorsByFundId(fundId);
@@ -133,10 +135,11 @@ public class MutualFundServiceImpl implements MutualFundService {
 		if (!dir.exists()) {
 			dir.mkdirs(); // create the folder if it doesn't exist
 		}
-		 // Construct the full file path where the file will be saved (folderPath/filename)
+		// Construct the full file path where the file will be saved
+		// (folderPath/filename)
 		String filePath = folderPath + File.separator + file.getOriginalFilename();
 		// Use try-with-resources to automatically close streams after use
-		try (InputStream in = file.getInputStream();// InputStream from the uploaded MultipartFile
+		try (InputStream in = file.getInputStream(); // InputStream from the uploaded MultipartFile
 				OutputStream out = new FileOutputStream(filePath)) { // OutputStream to the destination file
 
 			byte[] buffer = new byte[1024];// Create a 1 KB buffer for efficient reading/writing
