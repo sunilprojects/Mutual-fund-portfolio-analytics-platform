@@ -78,21 +78,17 @@ public class MutualFundServiceImpl implements MutualFundService {
 				if (filename.contains(" - ")) {
 					filename = filename.substring(0, filename.indexOf(" - ")).trim();
 				}
-				System.out.println("updated filename:" + filename);
 
 				FilesFactory filesFactory = new FilesFactory();
 
 				MutualFundFile mutualFundFile = filesFactory.getFile(filename);
 
 				if (mutualFundFile == null) {
+					log.info("{} Not found",mutualFundFile);
 					continue;
-					
 				}
 
 				MutualFundDTO mutualFundDTO = mutualFundFile.extractFile(sheet);
-				log.info("{}", mutualFundDTO.getEquity().size());
-
-				
 
 				mutualFundDTO.setCreatedBy(userName);
 
