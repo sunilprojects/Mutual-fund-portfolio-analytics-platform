@@ -67,6 +67,19 @@ public class GlobalExceptionHandler {
 
 		return new ResponseEntity<>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
+	
+	@ExceptionHandler(AWSS3FileUploadException.class)
+	public ResponseEntity<ErrorDetails> handleAWSS3FileUploadException(AWSS3FileUploadException ex){
+		
+		ErrorDetails errorDetails=ErrorDetails.builder()
+				.timestamp(LocalDateTime.now())
+				.fileName(ex.getFileName())
+				.message(ex.getMessage())
+				.status(HttpStatus.INTERNAL_SERVER_ERROR.name())
+				.statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
+				.build();
+		return new ResponseEntity<>(errorDetails,HttpStatus.INTERNAL_SERVER_ERROR);
+	}
 
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ErrorDetails> handleGenericException(Exception ex) {

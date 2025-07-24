@@ -23,6 +23,7 @@ import com.aroha.mutualfund.service.MutualFundService;
 @RestController
 @RequestMapping(EndPoints.API_V1_FUNDS)
 public class MutualFundController {
+	
 	@Autowired
 	private MutualFundService mutualFundService;
 
