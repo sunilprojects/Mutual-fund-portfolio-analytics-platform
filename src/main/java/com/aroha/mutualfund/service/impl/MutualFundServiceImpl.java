@@ -54,7 +54,7 @@ public class MutualFundServiceImpl implements MutualFundService {
 		this.holdingTransactionsRepository = holdingTransactionsRepository;
 	}
 
-	// To process Uplaoded Files
+	// To process Uploaded Files
 	@Override
 	public ResponseEntity<String> processFundFile(MultipartFile[] files, String userName) {
 		if (files == null || files.length == 0) {
