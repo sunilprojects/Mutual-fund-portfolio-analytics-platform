@@ -44,14 +44,16 @@ public class MutualFundServiceImpl implements MutualFundService {
 	private InstrumentRepository instrumentRepository;
 	private HoldingsRepository holdingsRepository;
 	private HoldingTransactionsRepository holdingTransactionsRepository;
+	private S3ServiceImpl s3ServiceImpl;
 
 	// Constructor injection
 	public MutualFundServiceImpl(FundRepository mutualFundRepository, InstrumentRepository instrumentRepository,
-			HoldingsRepository holdingsRepository, HoldingTransactionsRepository holdingTransactionsRepository) {
+			HoldingsRepository holdingsRepository, HoldingTransactionsRepository holdingTransactionsRepository,S3ServiceImpl s3ServiceImpl) {
 		this.fundRepository = mutualFundRepository;
 		this.instrumentRepository = instrumentRepository;
 		this.holdingsRepository = holdingsRepository;
 		this.holdingTransactionsRepository = holdingTransactionsRepository;
+		this.s3ServiceImpl=s3ServiceImpl;
 	}
 
 	// To process Uplaoded Files
@@ -62,13 +64,19 @@ public class MutualFundServiceImpl implements MutualFundService {
 		}
 
 		for (MultipartFile file : files) {
+			
+			
 			String filename = file.getOriginalFilename();
+			
 
 			if (filename == null
 					|| (!filename.toLowerCase().endsWith(".xls") && !filename.toLowerCase().endsWith(".xlsx"))) {
 				continue;
 			}
-
+			
+			//To store uploaded file in aws s3 bucket
+			s3ServiceImpl.uploadFile(file,"UPLOAD");
+			
 			InputStream inputStream;
 			Sheet sheet;
 			try {
@@ -103,12 +111,15 @@ public class MutualFundServiceImpl implements MutualFundService {
 
 			handleDBOperationToSaveFileDetails(mutualFundDTO);
 
+			//To store success file in aws s3 bucket
+			s3ServiceImpl.uploadFile(file,"SUCCESS");
+			
 			// Save file to folder
-			try {
-				saveFileToFolder(file, "uploaded-files/success");
-			} catch (IOException e) {
-				throw new ExcelProcessingException("Excel processing exception !!! : ", filename);
-			}
+//			try {
+//				saveFileToFolder(file, "uploaded-files/success");
+//			} catch (IOException e) {
+//				throw new ExcelProcessingException("Excel processing exception !!! : ", filename);
+//			}
 
 		}
 		return ResponseEntity.ok("All Files processed succesfully..");
