@@ -168,7 +168,7 @@ public class HandlerHDFCOpportunitiesFund implements MutualFundFile {
 			// Skipping pre-data footer rows like row 6, 7, 88
 			if (nonEmptyCount < 6) {
 				if (!startValidation) {
-					log.warn(" Skipping row {} due to missing fields.", row.getRowNum() + 1);
+					log.debug(" Skipping row {} due to missing fields.", row.getRowNum() + 1);
 					continue; // Before real data begins
 				} else {
 					continue; // After data start, still allow skipping blank rows
